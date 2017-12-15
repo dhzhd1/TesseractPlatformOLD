@@ -85,13 +85,16 @@ def login():
 	                       tiltle="Tesseract Platform for AI")
 
 @app.route('/logout')
+@login_required
 def logout():
-	pass
+	logout_user()
+	return redirect(url_for('login'))
 
 @app.route('/')
 @app.route('/dashboard')
 @login_required
 def dashboard():
+	# Todo: add a real dashboard page
 	return "<h1>This is dashboard page</h1>"
 
 
