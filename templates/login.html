@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block css_links %}
+    <link href="../static/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <link href="../static/css/sb-admin.css" rel="stylesheet">
+{% endblock css_links %}
+
+{% block body_class %}bg-dark{% endblock body_class %}
+
+{% block body_content %}
+<div class="container">
+    <div class="card card-login mx-auto mt-5">
+      <div class="card-img-top"><img src="../static/images/Tesseract.png"></div>
+      <div class="card-body">
+        <form method="POST" action="/login">
+            {{ form.hidden_tag() }}
+          <div class="form-group">
+              {{ form.username.label }}
+              {{ form.username(class_="form-control", placeholder="Enter Login Account") }}
+          </div>
+          <div class="form-group">
+              {{ form.password.label }}
+              {{ form.password(class_="form-control", placeholder="Enter Your Password") }}
+          </div>
+          <div class="form-group">
+            <div class="form-check">
+                <label class="form-check-label">
+                    {{ form.remember_me(class_="form-check-input") }}
+                    {{ form.remember_me.label }}
+                </label>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-block" type="submit">Login</button>
+        </form>
+        <div class="text-center">
+{#          <a class="d-block small mt-3" href="register.html">Register an Account</a>#}
+          <a class="d-block small" href="forgot-password.html">Forgot Password?</a>
+        </div>
+      </div>
+        <div class="container">
+            <div class="text-center">
+                <small>{{ copyright_1|safe }}</small>
+            </div>
+            <div class="text-center">
+                <small>{{ copyright_2|safe }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body_content%}
+
+{% block customized_scripts %}
+    <!-- Bootstrap core JavaScript-->
+    <script src="vendor/jquery/jquery.min.js"></script>
+    <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Core plugin JavaScript-->
+    <script src="vendor/jquery-easing/jquery.easing.min.js"></script>
+{% endblock customized_scripts%}
+
