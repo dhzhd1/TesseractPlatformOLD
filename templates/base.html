@@ -10,7 +10,7 @@
     {% block css_links %}
     {% endblock css_links %}
 </head>
-<body class="{% block body_class %}{% endblock body_class %}">
+<body {% block body_tag %}{% endblock body_tag %}>
 {% block body_content %}{% endblock body_content %}
 {% block customized_scripts %}{% endblock customized_scripts %}
 </body>
