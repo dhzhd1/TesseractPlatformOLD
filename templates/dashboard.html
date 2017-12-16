@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+{% block main_container %}
+      <!-- Breadcrumbs-->
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href={{ url_for('dashboard') }}>Dashboard</a>
+        </li>
+        <li class="breadcrumb-item active">Welcome {{ current_user.username }}</li>
+      </ol>
+      <hr>
+      <!-- you should put the content here -->
+      <p>Put your content here</p>
+      <!-- content end from here -->
+      <!-- Blank div to give the page height to preview the fixed vs. static navbar-->
+      <div style="height: 1000px;"></div>
+    </div>
+{% endblock main_container %}

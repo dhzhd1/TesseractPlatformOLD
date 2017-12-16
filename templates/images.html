@@ -1,0 +1,89 @@
+{% extends 'layout.html' %}
+{% block main_container %}
+      <!-- Breadcrumbs-->
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href={{ url_for('dashboard') }}>Dashboard</a>
+        </li>
+        <li class="breadcrumb-item active">List Images</li>
+      </ol>
+      <hr>
+      <div class="card mb-3">
+        <div class="card-header"><i class="fa fa-table"></i> AI Image List </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Image ID</th>
+                  <th>Repository</th>
+                  <th>TAG</th>
+                  <th>Size</th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <th>Image ID</th>
+                  <th>Repository</th>
+                  <th>TAG</th>
+                  <th>Size</th>
+                </tr>
+              </tfoot>
+              <tbody>
+                {% for image in images %}
+                    <tr>
+                        <td>{{ image.image_id }}</td>
+                        <td>{{ image.repository }}</td>
+                        <td>{{ image.image_tag }}</td>
+                        <td>{{ image.image_size }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer small text-muted">Updated at {{ update_timestamp }}</div>
+      </div>
+        <div class="form-group">
+        <a class="btn btn-primary" href={{ url_for('images') }} id="imageDetails" type="button">Details</a>
+        <a class="btn btn-primary" href={{ url_for('images') }} id="imageRemove" type="button">Remove</a>
+        <a class="btn btn-primary" href={{ url_for('images') }} id="imageUpdate" type="button">Update</a>
+        <a class="btn btn-primary" href={{ url_for('images') }} id="imageImport" type="button">Import...</a>
+        </div>
+      <!-- content end from here -->
+      <!-- Blank div to give the page height to preview the fixed vs. static navbar-->
+{#      <div style="height: 1000px;"></div>#}
+{% endblock main_container %}
+
+{% block customized_scripts %}
+    <!-- Bootstrap core JavaScript-->
+    <script src="../static/vendor/jquery/jquery.min.js"></script>
+    <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Core plugin JavaScript-->
+    <script src="../static/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <!-- Custom scripts for all pages-->
+    <script src="../static/js/sb-admin.min.js"></script>
+    <!-- Custom scripts for this page-->
+    <!-- Toggle between fixed and static navbar-->
+    <script src="../static/vendor/datatables/jquery.dataTables.js"></script>
+    <script src="../static/vendor/datatables/dataTables.bootstrap4.js"></script>
+    <script src="../static/js/sb-admin.js"></script>
+    <script src="../static/js/sb-admin-datatables.min.js"></script>
+    <script scr="../static/vendor/bootstrap/js/bootstrap.js"></script>
+    <script>
+    $('#toggleNavPosition').click(function() {
+      $('body').toggleClass('fixed-nav');
+      $('nav').toggleClass('fixed-top static-top');
+    });
+
+    </script>
+    <!-- Toggle between dark and light navbar-->
+    <script>
+    $('#toggleNavColor').click(function() {
+      $('nav').toggleClass('navbar-dark navbar-light');
+      $('nav').toggleClass('bg-dark bg-light');
+      $('body').toggleClass('bg-dark bg-light');
+    });
+
+    </script>
+{% endblock customized_scripts %}
