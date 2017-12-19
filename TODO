@@ -1,3 +1,16 @@
-1. Add GPU detail information page
-2. Add 'System Info'into Navigation bar
+1. Add GPU detail information page. GPU summary page is done. Create subtable for each GPU card information.
+    and when click the GPU card, it will redirect to GPU detail page.
+2. Add 'System'into Navigation bar: conver "Hardware iNformation" to GPU info. and add another page for system info
+
 3. Upper-left side 'Tesseract Platform' change to a picture
+4. Consider add image visiblity(public, private, group share) add we need add two more column,
+    image owner and assigned groups.  image_type=[factory, user]
+5. instance also need a access right control
+6. instance create also need a share volumn mount
+7. Instance port information
+8. Group management
+9. each user's home folder and structure(data, log, model, network, src). Init when create user
+10. Remove use and data export.
+11. ssh capability maybe (not) just docker exec <ID> bash
+12. database initializating script: admin user, detail basic hw information, collect gpu information.
+13. (maybe) a fluxdb for collection gpu statistic and show in front.
