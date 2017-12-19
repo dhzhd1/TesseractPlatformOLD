@@ -11,7 +11,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
 
-
 # app settings
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'TESSERACT_PALTFORM'
@@ -25,6 +24,7 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+
 
 # Database Define
 class User(UserMixin, db.Model):
@@ -57,18 +57,56 @@ class Image(db.Model):
 		self.image_id = image_id
 		self.image_size = image_size
 
+
 class Instance(db.Model):
 	__tablename__ = 'instance'
-	id = db.Column(db.Integer, primary_key=True, autoincrement=True) #treat as instance ID
+	id = db.Column(db.Integer, primary_key=True, autoincrement=True)  # treat as instance ID
 	image_id = db.Column(db.String(12), nullable=False)
 	instance_name = db.Column(db.String(64), nullable=False)
 	instance_owner = db.Column(db.Integer, nullable=False)  # User.id
 	with_gpu = db.Column(db.Boolean)
 	gpu_ids = db.Column(db.Integer)
+
 	# GPU IDs will be a b'1111111111111111' 16bit binary. Max is 65535.
 	# each bit will stand for a gpu, and point to a GPU_ID which shows in nvidia-smi
 
+	def __init__(self, image_id=None, instance_name=None, instance_owner=None, with_gpu=None, gpu_ids=None):
+		self.image_id = image_id
+		self.instance_name = instance_name
+		self.instance_owner = instance_owner
+		self.with_gpu = with_gpu
+		self.gpu_ids = gpu_ids
 
+
+class GpuDeviceInfo(db.Model):
+	__tablename__ = 'gpu_info'
+	uuid = db.Column(db.String(40), primary_key=True)
+	prod_name = db.Column(db.String(64), nullable=False)
+	prod_brand = db.Column(db.String(64), nullable=True)
+	serial_num = db.Column(db.String(64), nullable=True)
+	driver_ver = db.Column(db.String(16), nullable=False)
+	bus_id = db.Column(db.String(32), nullable=False)
+	gpu_id = db.Column(db.Integer, nullable=False)  # GPU id = [Attached GPUs] - [Minor Number] - 1
+	gpu_image_version = db.Column(db.String(16), nullable=True)
+	vbios_version = db.Column(db.String(16), nullable=True)
+	total_mem = db.Column(db.Integer)
+	ecc_mode = db.Column(db.String)
+	share_mode = db.Column(db.String, nullable=True)
+
+	def __init__(self, uuid=None, prod_name=None, prod_brand=None, serial_num=None, driver_ver=None,
+	             bus_id=None, gpu_id=None, gpu_image_version=None, vbios_version=None, total_mem=None, ecc_mode=None, share_mode="shared"):
+		self.uuid = uuid
+		self.prod_brand = prod_brand
+		self.prod_name = prod_name
+		self.serial_num = serial_num
+		self.driver_ver = driver_ver
+		self.bus_id = bus_id
+		self.gpu_id = gpu_id
+		self.gpu_image_version = gpu_image_version
+		self.vbios_version = vbios_version
+		self.total_mem = total_mem
+		self.ecc_mode = ecc_mode
+		self.share_mode = share_mode
 
 
 @login_manager.user_loader
@@ -77,9 +115,10 @@ def load_user(user_id):
 
 
 # Some constant
-PREDEFINED_GROUPS=['admins', 'users']
+PREDEFINED_GROUPS = ['admins', 'users']
 COPYRIGHT_INFO_1 = u"Copyright© 2017 AMAX Information Technologies, Inc."
 COPYRIGHT_INFO_2 = u"All Rights Reserved"
+
 
 # Form Classes Define
 
@@ -88,6 +127,7 @@ class LoginForm(FlaskForm):
 	password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=80)])
 	remember_me = BooleanField('Remember')
 
+
 class NewUserForm(FlaskForm):
 	username = StringField('User Name', validators=[InputRequired(), Length(min=4, max=15)])
 	password = PasswordField('Password', validators=[InputRequired(), Length(min=8, max=80)])
@@ -95,17 +135,22 @@ class NewUserForm(FlaskForm):
 	email = StringField('Email', validators=[InputRequired(), Email(message="Invalid email"), Length(max=50)])
 	group = SelectField('Group', choices=PREDEFINED_GROUPS)
 
+
 class NewInstanceForm(FlaskForm):
 	## TODO: Change the selection choices into a dynamic values which comes from database
 	## Ref: http://wtforms.simplecodes.com/docs/0.6.1/fields.html
-	image_repository = SelectField('Repository', validators=[InputRequired()], choices=[('all', 'All'),('amax/ai','amax/ai'),('amax/general','amax/general')], default=all)
-	image_tag = SelectField('Image Tag', validators=[InputRequired()], choices=[(None, ''),('tensorflow', 'tensorflow'),('mxnet', 'mxnet')], default=None)
-	instance_name = StringField('Instance Name', validators=[InputRequired(),Length(min=4, max=64)])
+	image_repository = SelectField('Repository', validators=[InputRequired()],
+	                               choices=[('all', 'All'), ('amax/ai', 'amax/ai'), ('amax/general', 'amax/general')],
+	                               default=all)
+	image_tag = SelectField('Image Tag', validators=[InputRequired()],
+	                        choices=[(None, ''), ('tensorflow', 'tensorflow'), ('mxnet', 'mxnet')], default=None)
+	instance_name = StringField('Instance Name', validators=[InputRequired(), Length(min=4, max=64)])
 	instance_owner = StringField('Owner')
 	need_gpu = BooleanField('Need GPU Resource', default=True)
-	select_gpu = SelectMultipleField('Select GPU', choices=[('0','GPU-0'),('1','GPU-1')])
+	select_gpu = SelectMultipleField('Select GPU',
+	                                 choices=[('0', 'GPU-0'), ('1', 'GPU-1'), ('2', 'GPU-2'), ('3', 'GPU-3'),
+	                                          ('4', 'GPU-4'), ('5', 'GPU-5'), ('6', 'GPU-6'), ('7', 'GPU-7')])
 	image_id = StringField('Image ID', validators=[InputRequired()])
-
 
 
 # Routing Define
@@ -123,7 +168,8 @@ def login():
 	                       form=form,
 	                       copyright_1=COPYRIGHT_INFO_1,
 	                       copyright_2=COPYRIGHT_INFO_2,
-	                       tiltle="Tesseract Platform for AI")
+	                       title="Tesseract Platform for AI")
+
 
 @app.route('/logout')
 @login_required
@@ -131,12 +177,12 @@ def logout():
 	logout_user()
 	return redirect(url_for('login'))
 
+
 @app.route('/')
 @app.route('/dashboard')
 @login_required
 def dashboard():
 	return render_template('dashboard.html', title="Dashboard - Tesseract Platform")
-
 
 
 @app.route('/images', methods=['GET', 'POST'])
@@ -183,8 +229,16 @@ def new_instance():
 		except:
 			result = "failed"
 		finally:
-			return render_template('new_instance.html', form=form, title="New Instance - Tesseract Platform",result=result)
+			return render_template('new_instance.html', form=form, title="New Instance - Tesseract Platform",
+			                       result=result)
 	return render_template('new_instance.html', form=form, title="New Instance - Tesseract Platform", result="")
+
+
+@app.route('/hw-info', methods=['GET', 'POST'])
+def hw_info():
+	# TODO: at this moment, only GPU information was provided. System information will be provided later.
+	gpus = GpuDeviceInfo.query.all()
+	return render_template('hardware_info.html', title="Hardware Information - Tesseract Platform", gpus=gpus)
 
 
 @app.route('/users/add', methods=['GET', 'POST'])
@@ -201,11 +255,12 @@ def user_add():
 			db.session.add(new_user)
 			db.session.commit()
 			result = "succeed"
-		except :
+		except:
 			result = "failed"
 		finally:
 			return render_template('add_user.html', form=form, result=result)
 	return render_template('add_user.html', form=form, result="")
+
 
 if __name__ == '__main__':
 	app.run(debug=True)
