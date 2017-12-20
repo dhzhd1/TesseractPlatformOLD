@@ -19,6 +19,8 @@
                   <th>Repository</th>
                   <th>TAG</th>
                   <th>Size</th>
+                  <th>Owner</th>
+                  <th>Type</th>
                 </tr>
               </thead>
               <tfoot>
@@ -27,6 +29,8 @@
                   <th>Repository</th>
                   <th>TAG</th>
                   <th>Size</th>
+                  <th>Owner</th>
+                  <th>Type</th>
                 </tr>
               </tfoot>
               <tbody>
@@ -36,6 +40,8 @@
                         <td>{{ image.repository }}</td>
                         <td>{{ image.image_tag }}</td>
                         <td>{{ image.image_size }}</td>
+                        <td>{{ image.image_owner }}</td>
+                        <td>{{ image.image_type }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -47,8 +53,9 @@
         <div class="form-group">
         <a class="btn btn-primary" href={{ url_for('images') }} id="imageDetails" type="button">Details</a>
         <a class="btn btn-primary" href={{ url_for('images') }} id="imageRemove" type="button">Remove</a>
-        <a class="btn btn-primary" href={{ url_for('images') }} id="imageUpdate" type="button">Update</a>
         <a class="btn btn-primary" href={{ url_for('images') }} id="imageImport" type="button">Import...</a>
+        <a class="btn btn-primary" href={{ url_for('images') }} id="imagePull" type="button">Pull...</a>
+        <a class="btn btn-primary" href={{ url_for('images') }} id="imagePull" type="button">Customize Build</a>
         </div>
       <!-- content end from here -->
       <!-- Blank div to give the page height to preview the fixed vs. static navbar-->

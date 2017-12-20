@@ -30,11 +30,11 @@ login_manager.login_view = 'login'
 class User(UserMixin, db.Model):
 	__tablename__ = 'user'
 	id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-	username = db.Column(db.String(15), unique=True, nullable=False)
+	username = db.Column(db.String(16), unique=True, nullable=False)
 	email = db.Column(db.String(50), unique=True, nullable=False)
 	password = db.Column(db.String(80), nullable=False)
 	activate_status = db.Column(db.Boolean)
-	group = db.Column(db.String(15), nullable=False)
+	group = db.Column(db.String(16), nullable=False)
 
 	def __init__(self, username=None, password=None, email=None, activate_status=None, group=None):
 		self.username = username
@@ -50,13 +50,20 @@ class Image(db.Model):
 	repository = db.Column(db.String(255), nullable=False)
 	image_tag = db.Column(db.String(255), nullable=False)
 	image_size = db.Column(db.String(16), nullable=False)
+	image_owner = db.Column(db.String(16))
+	image_type = db.Column(db.String(16))  # Public, Private, P-Share (Share with Group or User)
+	image_rights = db.Column(db.String(1024))  # Format: u:100,u:101,g:1110,g:132   (u=User, g=Group)
+	image_desc = db.Column(db.Text)
 
-	def __init__(self, repository=None, image_tag=None, image_id=None, image_size=None):
+	def __init__(self, repository=None, image_tag=None, image_id=None, image_size=None, image_own=None, image_type=None, image_rights=None, image_desc=None):
 		self.repository = repository
 		self.image_tag = image_tag
 		self.image_id = image_id
 		self.image_size = image_size
-
+		self.image_owner = image_own
+		self.image_type = image_type
+		self.image_rights = image_rights
+		self.image_desc = image_desc
 
 class Instance(db.Model):
 	__tablename__ = 'instance'
@@ -66,16 +73,17 @@ class Instance(db.Model):
 	instance_owner = db.Column(db.Integer, nullable=False)  # User.id
 	with_gpu = db.Column(db.Boolean)
 	gpu_ids = db.Column(db.Integer)
-
+	share_folder = db.Column(db.String(1024))
 	# GPU IDs will be a b'1111111111111111' 16bit binary. Max is 65535.
 	# each bit will stand for a gpu, and point to a GPU_ID which shows in nvidia-smi
 
-	def __init__(self, image_id=None, instance_name=None, instance_owner=None, with_gpu=None, gpu_ids=None):
+	def __init__(self, image_id=None, instance_name=None, instance_owner=None, with_gpu=None, gpu_ids=None, share_folder=None):
 		self.image_id = image_id
 		self.instance_name = instance_name
 		self.instance_owner = instance_owner
 		self.with_gpu = with_gpu
 		self.gpu_ids = gpu_ids
+		self.share_folder = share_folder
 
 
 class GpuDeviceInfo(db.Model):
@@ -94,7 +102,7 @@ class GpuDeviceInfo(db.Model):
 	share_mode = db.Column(db.String, nullable=True)
 
 	def __init__(self, uuid=None, prod_name=None, prod_brand=None, serial_num=None, driver_ver=None,
-	             bus_id=None, gpu_id=None, gpu_image_version=None, vbios_version=None, total_mem=None, ecc_mode=None, share_mode="shared"):
+	             bus_id=None, gpu_id=None, gpu_image_version=None, vbios_version=None, total_mem=None, ecc_mode=None, share_mode="Exclusive"):
 		self.uuid = uuid
 		self.prod_brand = prod_brand
 		self.prod_name = prod_name
@@ -148,8 +156,9 @@ class NewInstanceForm(FlaskForm):
 	instance_owner = StringField('Owner')
 	need_gpu = BooleanField('Need GPU Resource', default=True)
 	select_gpu = SelectMultipleField('Select GPU',
-	                                 choices=[('0', 'GPU-0'), ('1', 'GPU-1'), ('2', 'GPU-2'), ('3', 'GPU-3'),
-	                                          ('4', 'GPU-4'), ('5', 'GPU-5'), ('6', 'GPU-6'), ('7', 'GPU-7')])
+	                                 choices=[('all','All GPUs'),('0', 'GPU-0'), ('1', 'GPU-1'), ('2', 'GPU-2'), ('3', 'GPU-3'),
+	                                          ('4', 'GPU-4'), ('5', 'GPU-5'), ('6', 'GPU-6'), ('7', 'GPU-7')],
+	                                 default='all')
 	image_id = StringField('Image ID', validators=[InputRequired()])
 
 

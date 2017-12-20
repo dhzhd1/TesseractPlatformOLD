@@ -5,20 +5,34 @@ import subprocess
 import xml.etree.ElementTree as ET
 from TesseractPlatform import db, GpuDeviceInfo
 
-def check_nv_smi():
-	NVIDIA_SMI_PATH = '/usr/bin/nvidia-smi'
-	if not os.path.exists(NVIDIA_SMI_PATH):
-		print "No 'nvidia-smi tool found!"
-		exit(0)
+def check_nv_smi(nvidia_smi_path='/usr/bin/nvidia-smi'):
+	if not os.path.exists(nvidia_smi_path):
+		return False
 	else:
 		print("'nvidia-smi' tool found!")
+		return True
+
+def check_docker(nvidia_docker_path='/usr/bin/nvidia-docker'):
+	if not os.path.exists(nvidia_docker_path):
+		print('nvidia-docker not found! please install first')
+		# TODO: will add a automatication installation script for install the nvidia-docker
+		return False
+	else:
+		print("'nvidia-docker' found!")
+		return True
+
+def login_private_repo():
+	PRIVATE_REPO = ""
+	pass
+
+
+
 
 def get_device_num(nvidia_smi='/usr/bin/nvidia-smi'):
 	gpu_list = subprocess.check_output([nvidia_smi, '-L']).split('\n')
 	gpu_list = [x for x in gpu_list if x!='']
 	gpu_amount = len(gpu_list)
 	if gpu_amount > 0:
-		print "There {} {} populated in this system!".format(gpu_amount, 'GPUs' if gpu_amount > 1 else "GPU")
 		return gpu_amount
 	else:
 		print "There is no GPU device in this system!"
@@ -61,6 +75,25 @@ def save_to_database(gpu_id, driver_ver, busID, prod_name, prod_brand, uuid, ser
 		print("save successful!")
 	except:
 		print("Failed to save the data into database!")
+
+def update_gpu_info():
+	NVIDIA_SMI_PATH = '/usr/bin/nvidia-smi'
+	if check_nv_smi(NVIDIA_SMI_PATH):
+		gpu_amount = get_device_num(NVIDIA_SMI_PATH)
+		if gpu_amount > 0:
+			print "There {} {} populated in this system!".format(gpu_amount, 'GPUs' if gpu_amount > 1 else "GPU")
+			results = query_gpu_info(gpu_amount)
+			for result in results:
+				gpu_id, driver_version, busID, prod_name, prod_brand, uuid, serial_num, vbios_version, image_version, total_mem, ecc_mode = get_gpu_info(result)
+				save_to_database(gpu_id, driver_version, busID, prod_name, prod_brand, uuid, serial_num, vbios_version, image_version, total_mem, ecc_mode)
+		else:
+			print "There is no GPU device in this system!"
+			exit(0)
+
+	else:
+		print "No 'nvidia-smi tool found!"
+		exit(0)
+
 
 
 if __name__ == '__main__':

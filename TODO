@@ -2,7 +2,7 @@
     and when click the GPU card, it will redirect to GPU detail page.
 2. Add 'System'into Navigation bar: conver "Hardware iNformation" to GPU info. and add another page for system info
 
-3. Upper-left side 'Tesseract Platform' change to a picture
+3. [DOne] Upper-left side 'Tesseract Platform' change to a picture
 4. Consider add image visiblity(public, private, group share) add we need add two more column,
     image owner and assigned groups.  image_type=[factory, user]
 5. instance also need a access right control
