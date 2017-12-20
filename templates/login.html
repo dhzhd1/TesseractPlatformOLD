@@ -15,7 +15,7 @@
     <div class="card card-login mx-auto mt-5">
       <div class="card-img-top"><img src="../static/images/Tesseract.png"></div>
       <div class="card-body">
-        <form method="POST" action="/login">
+        <form method="POST" action={{ url_for('login') }}>
             {{ form.hidden_tag() }}
           <div class="form-group">
               {{ form.username.label }}

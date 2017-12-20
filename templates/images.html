@@ -15,33 +15,30 @@
             <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
-                  <th>Image ID</th>
                   <th>Repository</th>
                   <th>TAG</th>
-                  <th>Size</th>
-                  <th>Owner</th>
+                  <th>Image ID</th>
                   <th>Type</th>
+                  <th>Size</th>
                 </tr>
               </thead>
               <tfoot>
                 <tr>
-                  <th>Image ID</th>
                   <th>Repository</th>
                   <th>TAG</th>
-                  <th>Size</th>
-                  <th>Owner</th>
+                  <th>Image ID</th>
                   <th>Type</th>
+                  <th>Size</th>
                 </tr>
               </tfoot>
               <tbody>
                 {% for image in images %}
                     <tr>
-                        <td>{{ image.image_id }}</td>
                         <td>{{ image.repository }}</td>
                         <td>{{ image.image_tag }}</td>
-                        <td>{{ image.image_size }}</td>
-                        <td>{{ image.image_owner }}</td>
+                        <td>{{ image.image_id.split(':')[1][0:12] }}</td>
                         <td>{{ image.image_type }}</td>
+                        <td>{{ image.image_size }}</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -55,7 +52,9 @@
         <a class="btn btn-primary" href={{ url_for('images') }} id="imageRemove" type="button">Remove</a>
         <a class="btn btn-primary" href={{ url_for('images') }} id="imageImport" type="button">Import...</a>
         <a class="btn btn-primary" href={{ url_for('images') }} id="imagePull" type="button">Pull...</a>
-        <a class="btn btn-primary" href={{ url_for('images') }} id="imagePull" type="button">Customize Build</a>
+        <a class="btn btn-primary" href={{ url_for('images') }} id="imageCustBuild" type="button">Customize Build</a>
+        <a class="btn btn-primary" href={{ url_for('update_db') }} id="imageDbUpdate" type="button">ImageDB Update</a>
+
         </div>
       <!-- content end from here -->
       <!-- Blank div to give the page height to preview the fixed vs. static navbar-->

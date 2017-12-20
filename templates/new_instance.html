@@ -39,11 +39,11 @@
                   <div class="form-row">
                       <div class="col-md-4">
                           {{ form.image_repository.label }}
-                          {{ form.image_repository(class_='custom-select', id='imageRepo') }}
+                          {{ form.image_repository(class_='form-control custom-select', id='imageRepo') }}
                       </div>
-                      <div class="col-md-4">
+                      <div class="col-md-4 col-">
                           {{ form.image_tag.label }}
-                          {{ form.image_tag(class_='custom-select', id='imageTag') }}
+                          {{ form.image_tag(class_='form-control custom-select', id='imageTag') }}
                       </div>
                       <div class="col-md-4">
                           {{ form.image_id.label }}
@@ -59,7 +59,27 @@
               </div>
               <div class="form-group visibility: hidden" id="gpuListBlock">
                   {{ form.select_gpu.label }}
-                  {{ form.select_gpu(class_='form-control') }}
+                  {{ form.select_gpu(class_='form-control custom-select') }}
+              </div>
+              <div class="form-group">
+                  <div class="form-row">
+                      <div class="col-md-6">
+                          {{ form.share_folder_src.label }}
+                          {{ form.share_folder_src(class_='form-control', placeholder="Path of Host") }}
+                      </div>
+                      <div class="col-md-6">
+                          {{ form.share_folder_dest.label }}
+                          {{ form.share_folder_dest(class_='form-control', placeholder="Path in the Container") }}
+                      </div>
+                  </div>
+              </div>
+              <div class="form-group">
+                  {{ form.param_list.label }}
+                  {{ form.param_list(class_="form-control", placeholder="Env params for container. Use ',' to sepearate them") }}
+              </div>
+              <div class="form-group">
+                  {{ form.other_startup_params.label }}
+                  {{ form.other_startup_params(class_="form-control", placeholder="Customized startup params for container") }}
               </div>
               <a class="btn btn-primary btn-block" href={{ url_for('new_instance') }}>Create Instance</a>
             </form>
