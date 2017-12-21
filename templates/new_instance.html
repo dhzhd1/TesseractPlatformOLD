@@ -21,7 +21,7 @@
       <div class="card card-register mx-auto mt-5">
           <div class="card-header">Create a new Instance</div>
           <div class="card-body">
-            <form id="newInstanceForm">
+            <form id="newInstanceForm" action={{ url_for('new_instance') }} method="POST">
                 {{ form.hidden_tag() }}
               <div class="form-group">
                 <div class="form-row">
@@ -81,7 +81,13 @@
                   {{ form.other_startup_params.label }}
                   {{ form.other_startup_params(class_="form-control", placeholder="Customized startup params for container") }}
               </div>
-              <a class="btn btn-primary btn-block" href={{ url_for('new_instance') }}>Create Instance</a>
+              <div class="form-group">
+                  <label class="form-check-label">
+                      {{ form.start_immediate(class_="form-check-input") }}
+                      {{ form.start_immediate.label }}
+                  </label>
+              </div>
+              <button class="btn btn-primary btn-block" type="submit">Create Instance</button>
             </form>
           </div>
       </div>
@@ -105,7 +111,34 @@
            gpuListBlock.find('input').attr('required', false);
        }
     });
-
 </script>
+
+<script>
+    $('#imageRepo').change(function () {
+        var repository = $('#imageRepo').val();
+        $.getJSON('/get-tags/'+ repository,
+                function (data) {
+                    // remove old options
+                    $('#imageTag').find('option').remove();
+                    // add new options
+                    $.each(data, function (key, val) {
+                        var option_item = '<option value="' + val + '">' + val + '</option>'
+                        $('#imageTag').append(option_item)
+                    });
+            }
+        );
+    });
+    $('#imageTag').change(function() {
+        var repository = $('#imageRepo').val();
+        var tag = $('#imageTag').val();
+
+        $.getJSON('/get-image-id/' + repository + "+" + tag,
+                function (data) {
+                    $('#imageID').val(data);
+                }
+        );
+    });
+</script>
+
 
 {% endblock customized_scripts %}

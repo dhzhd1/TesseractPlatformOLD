@@ -3,8 +3,11 @@
 import os
 import subprocess
 import xml.etree.ElementTree as ET
-from TesseractPlatform import db, GpuDeviceInfo
-from TesseractPlatform import Image
+
+import math
+
+
+
 import re
 
 
@@ -51,6 +54,7 @@ def get_gpu_info(xml_content):
 
 
 def save_to_database(gpu_id, driver_ver, busID, prod_name, prod_brand, uuid, serial_num, vbios_Ver, image_ver, total_mem, ecc_mode):
+	from TesseractPlatform import db, GpuDeviceInfo
 	gpu_info = GpuDeviceInfo(gpu_id=gpu_id, driver_ver=driver_ver,
 	                         bus_id=busID, prod_name=prod_name,
 	                         prod_brand=prod_brand, uuid=uuid,
@@ -94,8 +98,9 @@ def check_nv_docker(nvidia_docker_path='/usr/bin/nvidia-docker'):
 		return True
 
 def get_local_image_list():
-	raw_output = subprocess.check_output(['docker', 'images', '--no-trunc']).split('\n')
-	raw_output = [x for x in raw_output[1:] if x != '']
+	from TesseractPlatform import Image
+	raw_output = subprocess.check_output(['docker', 'images', '--no-trunc', '--format', '{{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.Size}}']).split('\n')
+	raw_output = [x for x in raw_output if x != '']
 	pattern = r"\S+"
 	for line in raw_output:
 		columns = re.findall(pattern, line)
@@ -103,7 +108,8 @@ def get_local_image_list():
 		# Columns[1] is 'Tag'
 		# Columns[2] is 'Image ID' without truncated
 		# Columns[-1] is 'Size of the Image'
-		image_record = Image(repository=columns[0], image_tag=columns[1], image_id=columns[2], image_size=columns[-1],
+		image_record = Image(repository=columns[0], image_tag=columns[1], image_id=columns[2],
+		                     image_size=columns[3],
 							 image_type='Public')
 		try:
 			db.session.add(image_record)
@@ -112,6 +118,15 @@ def get_local_image_list():
 		except Exception as e:
 			db.session.rollback()
 			print("Save record failed for {}".format(columns[2]))
+
+
+################## GPU Selected ID Encode #################
+def encode_selected_gpu_ids(id_list):
+	result = sum([math.pow(2, int(y)) for y in id_list])
+	return int(result)
+
+################## GPU Selected ID Decode ##################
+
 
 
 
@@ -125,4 +140,6 @@ if __name__ == '__main__':
 	# 	gpu_id, driver_version, busID, prod_name, prod_brand, uuid, serial_num, vbios_version, image_version, total_mem, ecc_mode = get_gpu_info(result)
 	# 	save_to_database(gpu_id, driver_version, busID, prod_name, prod_brand, uuid, serial_num, vbios_version, image_version,
 	# 	                 total_mem, ecc_mode)
-	get_local_image_list()
+	# get_local_image_list()
+	id_list = [u'0', u'1', u'2', u'3']
+	print(encode_selected_gpu_ids(id_list))
