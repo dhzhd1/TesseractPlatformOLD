@@ -30,7 +30,7 @@
                 </li>
                 <li class="nav-item" data-toggle="tooltip" data-placement="right" title="AI Instances">
                   <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseInstance" data-parent="#tesseractSideBar">
-                    <i class="fa fa-fw fa-cloud"></i>
+                    <i class="fa fa-fw fa-cubes"></i>
                     <span class="nav-link-text">AI Instances</span>
                   </a>
                   <ul class="sidenav-second-level collapse" id="collapseInstance">
@@ -41,7 +41,7 @@
                       </a>
                     </li>
                     <li>
-                      <a class="nav-link" href="manage_instance.html">
+                      <a class="nav-link" href={{ url_for('instance_mgmt') }}>
                         <i class="fa fa-fw fa-wrench"></i>
                         <span class="nav-link-text">Manage Instances</span>
                       </a>
@@ -68,7 +68,7 @@
                       </a>
                     </li>
                     <li>
-                      <a class="nav-link" href={{ url_for('hw_info') }}>
+                      <a class="nav-link" href={{ url_for('gpu_info') }}>
                         <i class="fa fa-fw fa-microchip"></i>
                         <span class="nav-link-text">GPU Information</span>
                       </a>

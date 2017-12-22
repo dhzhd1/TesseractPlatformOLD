@@ -315,11 +315,18 @@ def get_expose_port(image_id):
 		port_list.append(key)
 	return jsonify(port_list)
 
-@app.route('/hw-info', methods=['GET', 'POST'])
-def hw_info():
+
+@app.route('/instance-mgmt', methods=['GET', 'POST'])
+@login_required
+def instance_mgmt():
+	container_list = docker_client.containers(all=True)
+	return render_template('instance_mgmt.html', title="Instance Management - Tesseract Platform", containers=container_list)
+
+@app.route('/gpu-info', methods=['GET', 'POST'])
+def gpu_info():
 	# TODO: at this moment, only GPU information was provided. System information will be provided later.
 	gpus = GpuDeviceInfo.query.all()
-	return render_template('hardware_info.html', title="Hardware Information - Tesseract Platform", gpus=gpus)
+	return render_template('gpu_info.html', title="Hardware Information - Tesseract Platform", gpus=gpus)
 
 
 @app.route('/users/add', methods=['GET', 'POST'])
@@ -376,7 +383,6 @@ def update_list():
 	image_to_remove = list(db_images_set - docker_images_set)
 	for img in image_to_remove:
 		image_record = Image.query.filter_by(repository=img.split('#')[0], image_tag=img.split('#')[1], image_id=img.split('#')[2]).first()
-		print image_record.repository, image_record.image_tag, image_record.image_id
 		try:
 			db.session.delete(image_record)
 			db.session.commit()

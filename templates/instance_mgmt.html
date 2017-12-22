@@ -1,0 +1,67 @@
+{% extends 'layout.html' %}
+{% block main_container %}
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href={{ url_for('dashboard') }}>Dashboard</a></li>
+    <li class="breadcrumb-item active">AI Instance</li>
+    <li class="breadcrumb-item active">Instance Management</li>
+</ol>
+<hr>
+<div class="card mb-3">
+        <div class="card-header"><i class="fa fa-cubes"></i> AI Images List </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Container Name</th>
+                  <th>Container ID</th>
+                  <th>Image</th>
+                  <th>Owner</th>
+                  <th>Volumes</th>
+                  <th>Ports Mapping</th>
+                  <th>State</th>
+                </tr>
+              </thead>
+              <tfoot>
+                <tr>
+                  <th>Container Name</th>
+                  <th>Container ID</th>
+                  <th>Image</th>
+                  <th>Owner</th>
+                  <th>Volumes</th>
+                  <th>Ports Mapping</th>
+                  <th>State</th>
+                </tr>
+              </tfoot>
+              <tbody>
+                {% for container in containers %}
+                    <tr>
+                        <td>{{ ','.join(container['Names']) }}</td>
+                        <td>{{ container['Id'][:12] }}</td>
+                        <td>{{ container['Image'] }}</td>
+                        <td>{{ container['owener'] }}</td>
+                        <td>{{ ','.join(container['Mounts']) }}</td>
+                        <td>{{ ';'.join(','.join(container['Ports'].key)) }}</td>
+                        <td>{{ container['State'] }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-footer small text-muted">Updated at {{ update_timestamp }}</div>
+      </div>
+    <div class="form-group">
+    <a class="btn btn-primary" href={{ url_for('update_list') }} id="updateList" type="button">Update List</a>
+    <a class="btn btn-primary" href={{ url_for('images') }} id="imageDetails" type="button">Details</a>
+    <a class="btn btn-primary" href={{ url_for('images') }} id="imageRemove" type="button">Remove</a>
+    <a class="btn btn-primary" href={{ url_for('images') }} id="imageImport" type="button">Import...</a>
+    <a class="btn btn-primary" href={{ url_for('images') }} id="imagePull" type="button">Pull...</a>
+    <a class="btn btn-primary" href={{ url_for('images') }} id="imageCustBuild" type="button">Customize Build</a>
+
+
+        </div>
+      <!-- content end from here -->
+      <!-- Blank div to give the page height to preview the fixed vs. static navbar-->
+{#      <div style="height: 1000px;"></div>#}
+{% endblock %}
