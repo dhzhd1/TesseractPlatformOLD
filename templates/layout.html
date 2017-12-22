@@ -30,7 +30,7 @@
                 </li>
                 <li class="nav-item" data-toggle="tooltip" data-placement="right" title="AI Instances">
                   <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseInstance" data-parent="#tesseractSideBar">
-                    <i class="fa fa-fw fa-desktop"></i>
+                    <i class="fa fa-fw fa-cloud"></i>
                     <span class="nav-link-text">AI Instances</span>
                   </a>
                   <ul class="sidenav-second-level collapse" id="collapseInstance">
@@ -54,12 +54,30 @@
                     <span class="nav-link-text">AI Images</span>
                   </a>
                 </li>
-                  <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Hardware Information">
-                  <a class="nav-link" href={{ url_for('hw_info') }}>
-                    <i class="fa fa-fw fa-dashcube"></i>
+
+                <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Hardware Information">
+                  <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseHW" data-parent="#tesseractSideBar">
+                    <i class="fa fa-fw fa-info-circle"></i>
                     <span class="nav-link-text">Hardware Information</span>
                   </a>
+                  <ul class="sidenav-second-level collapse" id="collapseHW">
+                    <li>
+                      <a class="nav-link" href="#">
+                        <i class="fa fa-fw fa-desktop"></i>
+                        <span class="nav-link-text">System Information</span>
+                      </a>
+                    </li>
+                    <li>
+                      <a class="nav-link" href={{ url_for('hw_info') }}>
+                        <i class="fa fa-fw fa-microchip"></i>
+                        <span class="nav-link-text">GPU Information</span>
+                      </a>
+                    </li>
+                  </ul>
                 </li>
+
+
+
                 <li class="nav-item" data-toggle="tooltip" data-placement="right" title="Users">
                   <a class="nav-link nav-link-collapse collapsed" data-toggle="collapse" href="#collapseUsers" data-parent="#tesseractSideBar">
                     <i class="fa fa-fw fa-user"></i>
