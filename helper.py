@@ -98,7 +98,7 @@ def check_nv_docker(nvidia_docker_path='/usr/bin/nvidia-docker'):
 		return True
 
 def get_local_image_list():
-	from TesseractPlatform import Image
+	from TesseractPlatform import Image, db
 	raw_output = subprocess.check_output(['docker', 'images', '--no-trunc', '--format', '{{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.Size}}']).split('\n')
 	raw_output = [x for x in raw_output if x != '']
 	pattern = r"\S+"
@@ -120,14 +120,9 @@ def get_local_image_list():
 			print("Save record failed for {}".format(columns[2]))
 
 
-################## GPU Selected ID Encode #################
-def encode_selected_gpu_ids(id_list):
-	result = sum([math.pow(2, int(y)) for y in id_list])
-	return int(result)
-
-################## GPU Selected ID Decode ##################
-
-
+##################Parse image inspect info #####################
+def parse_inspect_info(response, key):
+	pass
 
 
 

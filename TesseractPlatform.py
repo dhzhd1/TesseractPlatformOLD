@@ -10,8 +10,9 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from datetime import datetime
-from helper import encode_selected_gpu_ids
-import subprocess, re
+import subprocess, docker
+from docker import APIClient
+from container import create_container, start_container
 
 # app settings
 app = Flask(__name__)
@@ -27,6 +28,9 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+# Docker Client Session:
+# docker_client = docker.from_env()
+docker_client = APIClient(base_url='unix:///var/run/docker.sock')
 
 # Database Define
 class User(UserMixin, db.Model):
@@ -76,18 +80,17 @@ class Instance(db.Model):
 	instance_name = db.Column(db.String(64), nullable=False)
 	instance_owner = db.Column(db.Integer, nullable=False)  # User.id
 	with_gpu = db.Column(db.Boolean)
-	gpu_ids = db.Column(db.Integer)
+	gpu_ids = db.Column(db.String(64))
 	share_folder = db.Column(db.String(1024))
 	env_params = db.Column(db.String(2048))
-	startup_params = db.Column(db.String(2048))
+	# startup_params = db.Column(db.String(2048))
 	container_id = db.Column(db.String(1024))
-	command=db.Column(db.String(2048))
 	created_time = db.Column(db.DateTime, default=datetime.now())
 	status = db.Column(db.String(64))
 	port_map = db.Column(db.String(1024))
 
-	# GPU IDs will be a b'1111111111111111' 16bit binary. Max is 65535.
-	# each bit will stand for a gpu, and point to a GPU_ID which shows in nvidia-smi
+	# TODO: mac_address, hostname, extra_hosts, dns, dns_search, auto_remove, command, entrypoint,environment
+	#       ports, publish_all_ports, restart_policy, stop_signal, tty, ulimits, volumnes, runtime, working_dir
 
 	def __init__(self, image_id=None, instance_name=None, instance_owner=None, with_gpu=None,
 				 gpu_ids=None, share_folder=None, env_params=None, startup_params=None):
@@ -176,12 +179,12 @@ class NewInstanceForm(FlaskForm):
 	select_gpu = SelectMultipleField('Select GPU',
 									 choices=[('all', 'All GPUs')] +
 											 [(str(e.gpu_id), "GPU: " + str(e.gpu_id) + "  " + e.prod_name + ' [' + e.share_mode + ']') for e in GpuDeviceInfo.query.all()],
-									 default='all', validators=[InputRequired()])
+									 default='all')
 	image_id = StringField('Image ID', validators=[InputRequired()])
-	share_folder_src = StringField('Folder Mapping From')
-	share_folder_dest = StringField('Folder Mapping To')
+	folder_mapping = StringField('Folder Mapping')
 	param_list = StringField('Environment Parameters')
-	other_startup_params = StringField('Container Startup Parameters')
+	# other_startup_params = StringField('Container Startup Parameters')
+	port_list = StringField('Port Mapping')
 	start_immediate = BooleanField('Start Instance After Created', default=True)
 
 
@@ -237,22 +240,51 @@ def new_instance():
 		inst.instance_name = form.instance_name.data
 		inst.instance_owner = form.instance_owner.data
 		inst.with_gpu = form.need_gpu.data
-		inst.share_folder = form.share_folder_src.data + ":" + form.share_folder_dest.data
+		inst.share_folder = form.folder_mapping.data
 		inst.env_params = form.param_list.data
-		inst.startup_params = form.other_startup_params.data
-		inst.gpu_ids = encode_selected_gpu_ids(form.select_gpu.data)
+		# inst.startup_params = form.other_startup_params.data
+		inst.gpu_ids = ','.join(form.select_gpu.data
+		                        if 'all' not in form.select_gpu.data
+		                        else [str(x) for x in xrange(GpuDeviceInfo.query.count())]) if not form.need_gpu.data else ''
+		inst.port_map = form.port_list.data
+		need_start = form.start_immediate.data
 		try:
-			db.session.add(inst)
-			db.session.commit()
-			result = "succeed"
-		except Exception as e:
-			db.session.rollback()
-			result = "failed"
-		finally:
-			return render_template('new_instance.html', form=form, title="New Instance - Tesseract Platform",
-								   result=result)
-	return render_template('new_instance.html', form=form, title="New Instance - Tesseract Platform", result="")
+			container_inst = create_container(docker_client, inst)
+			inst.container_id = container_inst['Id']  # first 10 digits is short id
+			inst.status = 'created'
 
+			try:
+				db.session.add(inst)
+				db.session.commit()
+				result = "succeed"
+				message = "Instance created!"
+				try:
+					if need_start:
+						start_container(docker_client, inst.container_id)
+						db.session.query(Instance).filter(Instance.container_id == inst.container_id).update({'status': 'started'})
+						db.session.commit()
+						result = "succeed"
+						message = "Instance created and started!"
+				except Exception as e:
+					result = "failed"
+					message = "Instance cannot started!"
+				finally:
+					return render_template('new_instance.html', form=NewInstanceForm(), title="New Instance - Tesseract Platform",
+					                       result=result, message=message)
+			except Exception as e:
+				db.session.rollback()
+				result = "failed"
+				message = "Failed create instance!"
+			finally:
+				return render_template('new_instance.html', form=NewInstanceForm(), title="New Instance - Tesseract Platform",
+								   result=result, message=message)
+		except Exception as e:
+			result = "failed"
+			message = "Failed create instance!"
+		finally:
+			return render_template('new_instance.html', form=NewInstanceForm(), title="New Instance - Tesseract Platform",
+			                       result=result, message=message)
+	return render_template('new_instance.html', form=form, title="New Instance - Tesseract Platform", result="")
 
 
 @app.route('/get-tags/<string:repo_name>', methods=['GET'])
@@ -274,6 +306,14 @@ def get_image_id(repo_tag):
 		return jsonify([])
 	return jsonify([str(image_id).split(':')[1][:12]])
 
+@app.route('/get-expose-port/<string:image_id>', methods=['GET'])
+@login_required
+def get_expose_port(image_id):
+	exposed_port = docker_client.inspect_image(image_id)['ExposedPorts']
+	port_list = []
+	for key in exposed_port.keys():
+		port_list.append(key)
+	return jsonify(port_list)
 
 @app.route('/hw-info', methods=['GET', 'POST'])
 def hw_info():

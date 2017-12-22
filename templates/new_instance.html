@@ -1,99 +1,92 @@
 {% extends 'layout.html' %}
 {% block main_container %}
-      <!-- Breadcrumbs-->
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-          <a href={{ url_for('dashboard') }}>Dashboard</a>
-        </li>
-        <li class="breadcrumb-item active">Create New Instance</li>
-      </ol>
-      <hr>
-      {%  if result == "succeed" %}
-        <div class="alert-success alert-dismissable">
-            <span >New instance created successfully! You can find this instance under 'Instance Management'.</span>
-        </div>
-      {% elif result == "failed" %}
-        <div class="alert-warning alert-dismissable">
-            <span >Failed to create the instance. Please check the input parameters and try again.</span>
-        </div>
-      {% endif %}
-      <!-- content start from here -->
-      <div class="card card-register mx-auto mt-5">
-          <div class="card-header">Create a new Instance</div>
-          <div class="card-body">
-            <form id="newInstanceForm" action={{ url_for('new_instance') }} method="POST">
+<!-- Breadcrumbs-->
+<ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href={{ url_for('dashboard') }}>Dashboard</a></li>
+    <li class="breadcrumb-item active">Create New Instance</li>
+</ol>
+<hr>
+{%  if result == "succeed" %}
+<div class="alert-success alert-dismissable">
+    <span>{{ message }}</span>
+</div>
+{% elif result == "failed" %}
+<div class="alert-warning alert-dismissable">
+    <span>{{ message }}</span>
+</div>
+{% endif %}
+<!-- content start from here -->
+<div class="card card-register mx-auto mt-5">
+    <div class="card-header">Create a new Instance</div>
+    <div class="card-body">
+        <form id="newInstanceForm" action={{ url_for('new_instance') }} method="POST">
                 {{ form.hidden_tag() }}
-              <div class="form-group">
+            <div class="form-group">
                 <div class="form-row">
-                  <div class="col-md-6">
-                      {{ form.instance_name.label }}
-                      {{ form.instance_name(class_="form-control", id='instanceName', placeholder="Enter Instance Name") }}
-                  </div>
-                  <div class="col-md-6">
-                      {{ form.instance_owner.label }}
-                      {{ form.instance_owner(class_='form-control', id='instanceOwner', readonly=true, value=current_user.username) }}
-                  </div>
+                    <div class="col-md-6">
+                        {{ form.instance_name.label }}
+                        {{ form.instance_name(class_="form-control", id='instanceName', placeholder="Enter Instance Name")
+                        }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.instance_owner.label }}
+                        {{ form.instance_owner(class_='form-control', id='instanceOwner', readonly=true,
+                        value=current_user.username) }}
+                    </div>
                 </div>
-              </div>
-              <div class="form-group">
-                  <div class="form-row">
-                      <div class="col-md-4">
-                          {{ form.image_repository.label }}
-                          {{ form.image_repository(class_='form-control custom-select', id='imageRepo') }}
-                      </div>
-                      <div class="col-md-4 col-">
-                          {{ form.image_tag.label }}
-                          {{ form.image_tag(class_='form-control custom-select', id='imageTag') }}
-                      </div>
-                      <div class="col-md-4">
-                          {{ form.image_id.label }}
-                          {{ form.image_id(class_='form-control', id='imageID', readonly=true, placeholder="Image ID") }}
-                      </div>
-                  </div>
-              </div>
-              <div class="form-group">
+            </div>
+            <div class="form-group">
+                <div class="form-row">
+                    <div class="col-md-4">
+                        {{ form.image_repository.label }}
+                        {{ form.image_repository(class_='form-control custom-select', id='imageRepo') }}
+                    </div>
+                    <div class="col-md-4 col-">
+                        {{ form.image_tag.label }}
+                        {{ form.image_tag(class_='form-control custom-select', id='imageTag') }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.image_id.label }}
+                        {{ form.image_id(class_='form-control', id='imageID', readonly=true, placeholder="Image ID") }}
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
                 <label class="form-check-label">
                     {{ form.need_gpu(class_="form-check-input", onclick="shwoGpuList()", id="needGpu") }}
                     {{ form.need_gpu.label }}
                 </label>
-              </div>
-              <div class="form-group visibility: hidden" id="gpuListBlock">
-                  {{ form.select_gpu.label }}
-                  {{ form.select_gpu(class_='form-control custom-select') }}
-              </div>
-              <div class="form-group">
-                  <div class="form-row">
-                      <div class="col-md-6">
-                          {{ form.share_folder_src.label }}
-                          {{ form.share_folder_src(class_='form-control', placeholder="Path of Host") }}
-                      </div>
-                      <div class="col-md-6">
-                          {{ form.share_folder_dest.label }}
-                          {{ form.share_folder_dest(class_='form-control', placeholder="Path in the Container") }}
-                      </div>
-                  </div>
-              </div>
-              <div class="form-group">
-                  {{ form.param_list.label }}
-                  {{ form.param_list(class_="form-control", placeholder="Env params for container. Use ',' to sepearate them") }}
-              </div>
-              <div class="form-group">
-                  {{ form.other_startup_params.label }}
-                  {{ form.other_startup_params(class_="form-control", placeholder="Customized startup params for container") }}
-              </div>
-              <div class="form-group">
-                  <label class="form-check-label">
-                      {{ form.start_immediate(class_="form-check-input") }}
-                      {{ form.start_immediate.label }}
-                  </label>
-              </div>
-              <button class="btn btn-primary btn-block" type="submit">Create Instance</button>
-            </form>
-          </div>
-      </div>
-      <!-- content end from here -->
-      <!-- Blank div to give the page height to preview the fixed vs. static navbar-->
-{#      <div style="height: 1000px;"></div>#}
+            </div>
+            <div class="form-group visibility: hidden" id="gpuListBlock">
+                {{ form.select_gpu.label }}
+                {{ form.select_gpu(class_='form-control custom-select') }}
+            </div>
+            <div class="form-group">
+                {{ form.folder_mapping.label }}
+                {{ form.folder_mapping(class_='form-control', placeholder="Path Mapping. Use ',' to sepearate them") }}
+            </div>
+            <div class="form-group">
+                {{ form.param_list.label }}
+                {{ form.param_list(class_="form-control", placeholder="Env params for container. Use ',' to sepearate them") }}
+            </div>
+            <div class="form-group">
+                {{ form.port_list.label }}
+                {{ form.port_list(class_="form-control", placeholder="HostPort:ContainerPort. Use ',' to separate them" id='portList') }}
+            </div>
+            <div class="form-group">
+                <label class="form-check-label">
+                    {{ form.start_immediate(class_="form-check-input") }}
+                    {{ form.start_immediate.label }}
+                </label>
+            </div>
+            <button class="btn btn-primary btn-block" type="submit">Create Instance</button>
+        </form>
+    </div>
+</div>
+<!-- content end from here -->
+<!-- Blank div to give the page height to preview the fixed vs. static navbar-->
+{#
+<div style="height: 1000px;"></div>#}
 {% endblock main_container %}
 
 {% block customized_scripts %}
@@ -102,43 +95,40 @@
     gpuListBlock = $('#gpuListBlock')
     gpuListBlock.show()
 
-    checkbox.on('click', function(){
-       if($(this).is(':checked')) {
-           gpuListBlock.show();
-           gpuListBlock.find('input').attr('required', true);
-       }else{
-           gpuListBlock.hide();
-           gpuListBlock.find('input').attr('required', false);
-       }
+    checkbox.on('click', function () {
+        if ($(this).is(':checked')) {
+            gpuListBlock.show();
+            gpuListBlock.find('input').attr('required', true);
+        } else {
+            gpuListBlock.hide();
+            gpuListBlock.find('input').attr('required', false);
+        }
     });
 </script>
-
 <script>
     $('#imageRepo').change(function () {
         var repository = $('#imageRepo').val();
-        $.getJSON('/get-tags/'+ repository,
-                function (data) {
-                    // remove old options
-                    $('#imageTag').find('option').remove();
-                    // add new options
-                    $.each(data, function (key, val) {
-                        var option_item = '<option value="' + val + '">' + val + '</option>'
-                        $('#imageTag').append(option_item)
-                    });
+        $.getJSON('/get-tags/' + repository,
+            function (data) {
+                // remove old options
+                $('#imageTag').find('option').remove();
+                // add new options
+                $.each(data, function (key, val) {
+                    var option_item = '<option value="' + val + '">' + val + '</option>'
+                    $('#imageTag').append(option_item)
+                });
             }
         );
     });
-    $('#imageTag').change(function() {
+    $('#imageTag').change(function () {
         var repository = $('#imageRepo').val();
         var tag = $('#imageTag').val();
 
         $.getJSON('/get-image-id/' + repository + "+" + tag,
-                function (data) {
-                    $('#imageID').val(data);
-                }
+            function (data) {
+                $('#imageID').val(data);
+            }
         );
     });
 </script>
-
-
 {% endblock customized_scripts %}
