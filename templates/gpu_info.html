@@ -1,13 +1,12 @@
 {% extends 'layout.html' %}
 {% block main_container %}
     <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-          <a href={{ url_for('dashboard') }}>Dashboard</a>
-        </li>
+        <li class="breadcrumb-item"><a href={{ url_for('dashboard') }}>Dashboard</a></li>
         <li class="breadcrumb-item active">Hardware Information</li>
+        <li class="breadcrumb-item active">GPU Information</li>
     </ol>
     <hr>
-    <h4 class="my-4">GPU Information</h4>
+    <h5 class="my-4">GPU Information</h5>
     <div class="row">
         {% for gpu in gpus %}
             <div class="col-lg-3 col-md-4 col-sm-6 portfolio-item">
