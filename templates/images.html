@@ -15,6 +15,7 @@
             <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
+                  <th></th>
                   <th>Repository</th>
                   <th>TAG</th>
                   <th>Image ID</th>
@@ -24,6 +25,7 @@
               </thead>
               <tfoot>
                 <tr>
+                  <th></th>
                   <th>Repository</th>
                   <th>TAG</th>
                   <th>Image ID</th>
@@ -34,6 +36,7 @@
               <tbody>
                 {% for image in images %}
                     <tr>
+                        <td><input type="checkbox" class="form-group" id="IsSelected" name="IsSelected" value={{ image.image_id.split(':')[1][:12] }}></td>
                         <td>{{ image.repository }}</td>
                         <td>{{ image.image_tag }}</td>
                         <td>{{ image.image_id.split(':')[1][0:12] }}</td>
@@ -49,14 +52,30 @@
       </div>
         <div class="form-group">
         <a class="btn btn-primary" href={{ url_for('update_list') }} id="updateList" type="button">Update List</a>
-        <a class="btn btn-primary" href={{ url_for('images') }} id="imageDetails" type="button">Details</a>
-        <a class="btn btn-primary" href={{ url_for('images') }} id="imageRemove" type="button">Remove</a>
-        <a class="btn btn-primary" href={{ url_for('images') }} id="imageImport" type="button">Import...</a>
-        <a class="btn btn-primary" href={{ url_for('images') }} id="imagePull" type="button">Pull...</a>
-        <a class="btn btn-primary" href={{ url_for('images') }} id="imageCustBuild" type="button">Customize Build</a>
-
-
+        <a class="btn btn-primary" data-toggle="modal" data-target="#imageDetail" href="#" id="detailBt">Details</a>
+        <a class="btn btn-primary" href="#" id="imageRemove" type="button" id="imageRemoveLink">Remove</a>
+        <a class="btn btn-primary" href="#" id="imageImport" type="button" id="imageImportLink">Import...</a>
+        <a class="btn btn-primary" href="#" id="imageImport" type="button" id="imageExportLink">Export...</a>
+        <a class="btn btn-primary" href="#" id="imagePull" type="button" id="imagePullLink">Pull...</a>
+        <a class="btn btn-primary" href="#" id="imageBuild" type="button">Build from Dockerfile</a>
         </div>
+
+      <div class="modal fade" id="imageDetail" tabindex="-1" role="main" aria-labelledby="imageDetailInfo" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="imageDetailInfo">Image Information</h5>
+            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body" id="infoBody">Please selected an Image first!</div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" data-dismiss="modal">OK</button>
+          </div>
+        </div>
+      </div>
+      </div>
       <!-- content end from here -->
       <!-- Blank div to give the page height to preview the fixed vs. static navbar-->
 {#      <div style="height: 1000px;"></div>#}
@@ -93,4 +112,33 @@
     });
 
     </script>
+
+    <!-- allow one check box to be selected -->
+    <script>
+    var table = $("#dataTable")
+    $(document).ready(function(){
+        $('input[type="checkbox"]').on('change', function() {
+           var checkvalue = $(this).prop('checked');
+           table.find('input[type="checkbox"]').each(function(){
+                $(this).prop('checked', false);
+           });
+           $(this).prop("checked", checkvalue)
+        });
+    });
+    </script>
+
+
+    <!-- replace the #infoBody -->
+    <script>
+        detailBt = $('#detailBt')
+        div_body = $('#infoBody')
+        detailBt.click(function(){
+            $.getJSON('/image/image-detail',
+            function (data) {
+                div_body.html(data);
+            }
+        );
+        });
+    </script>
+
 {% endblock customized_scripts %}

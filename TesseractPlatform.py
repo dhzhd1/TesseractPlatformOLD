@@ -41,13 +41,33 @@ class User(UserMixin, db.Model):
 	password = db.Column(db.String(80), nullable=False)
 	activate_status = db.Column(db.Boolean)
 	group = db.Column(db.String(16), nullable=False)
+	home_folder = db.Column(db.String(2048), nullable=False)
+	memo = db.Column(db.Text)
 
-	def __init__(self, username=None, password=None, email=None, activate_status=None, group=None):
+	def __init__(self, username=None, password=None, email=None, activate_status=None, group=None, home_folder=None):
 		self.username = username
 		self.password = password
 		self.email = email
 		self.group = group
 		self.activate_status = activate_status
+
+class Group(db.Model):
+	__tablename__ = 'group'
+	gid= db.Column(db.Integer, primary_key=True, autoincrement=True)
+	group_name = db.Column(db.String(64), unique=True, nullable=False)
+	group_admin = db.Column(db.String(1024), nullable=False, default='admin')
+	member = db.Column(db.String(2048))
+	group_of = db.Column(db.String(2048))
+	group_email = db.Column(db.String(50))
+	memo = db.Column(db.Text)
+
+	def __init__(self, group_name=None, group_admin=None, member=None, group_of=None, group_email=None, memo=None):
+		self.group_name = group_name
+		self.group_admin = group_admin
+		self.group_email = group_email
+		self.member = member
+		self.memo = memo
+		self.group_of = group_of
 
 
 class Image(db.Model):
@@ -60,6 +80,7 @@ class Image(db.Model):
 	image_type = db.Column(db.String(16))  # Public, Private, P-Share (Share with Group or User)
 	image_rights = db.Column(db.String(1024))  # Format: u:100,u:101,g:1110,g:132   (u=User, g=Group)
 	image_desc = db.Column(db.Text)
+
 
 	def __init__(self, repository=None, image_tag=None, image_id=None, image_size=None, image_own=None, image_type=None,
 				 image_rights=None, image_desc=None):
@@ -88,6 +109,7 @@ class Instance(db.Model):
 	created_time = db.Column(db.DateTime, default=datetime.now())
 	status = db.Column(db.String(64))
 	port_map = db.Column(db.String(1024))
+	memo = db.Column(db.Text)
 
 	# TODO: mac_address, hostname, extra_hosts, dns, dns_search, auto_remove, command, entrypoint,environment
 	#       ports, publish_all_ports, restart_policy, stop_signal, tty, ulimits, volumnes, runtime, working_dir
@@ -139,6 +161,18 @@ class GpuDeviceInfo(db.Model):
 @login_manager.user_loader
 def load_user(user_id):
 	return User.query.get(int(user_id))
+
+
+class Logs(db.Model):
+	timestamp = db.Column(db.DateTime, primary_key=True, default=datetime.now())
+	log_type = db.Column(db.String(10), nullable=False)
+	log_message = db.Column(db.String(1024))
+	log_detail = db.Column(db.Text)
+
+	def __init__(self, log_type=None, log_message=None, log_detail=None):
+		self.log_type = log_type
+		self.log_message = log_message
+		self.log_detail = log_detail
 
 
 # Some constant
@@ -236,7 +270,7 @@ def new_instance():
 	form = NewInstanceForm()
 	if form.validate_on_submit():
 		inst = Instance()
-		inst.image_id = form.image_id.data
+		inst.image_id = form.image_repository.data + ":" + form.image_tag.data
 		inst.instance_name = form.instance_name.data
 		inst.instance_owner = form.instance_owner.data
 		inst.with_gpu = form.need_gpu.data
@@ -320,6 +354,12 @@ def get_expose_port(image_id):
 @login_required
 def instance_mgmt():
 	container_list = docker_client.containers(all=True)
+	for container in container_list:
+		info_from_db = Instance.query.with_entities(Instance.instance_owner, Instance.share_folder, Instance.port_map, Instance.instance_name).filter_by(container_id=container['Id']).first()
+		container['Owner'] = None if info_from_db is None or info_from_db[0] == '' else info_from_db[0]
+		container['Volumes'] = None if info_from_db is None or info_from_db[1] == '' else info_from_db[1]
+		container['PortsMapping'] = None if info_from_db is None or info_from_db[2] == '' else info_from_db[2]
+		container['ContainerName'] = ','.join([ n[1:] for n in container['Names']])
 	return render_template('instance_mgmt.html', title="Instance Management - Tesseract Platform", containers=container_list)
 
 @app.route('/gpu-info', methods=['GET', 'POST'])
@@ -393,5 +433,22 @@ def update_list():
 	return redirect(url_for('images'))
 
 
+@app.route('/image/image-detail', methods=['GET'])
+@login_required
+def image_detail():
+	return_str = ["<h1>Image Detail</h1>"]
+	return jsonify(return_str)
+
+
+@app.route('/logs', methods=['GET'])
+@login_required
+def logs():
+	return render_template('logs.html')
+
 if __name__ == '__main__':
+	db.session.add(Logs(log_message='Application started', log_type='Info', log_detail='N/A'))
+	db.session.commit()
 	app.run(debug=True)
+
+
+

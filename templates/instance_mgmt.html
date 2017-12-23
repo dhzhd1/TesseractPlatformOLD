@@ -13,6 +13,7 @@
             <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
               <thead>
                 <tr>
+                  <th></th>
                   <th>Container Name</th>
                   <th>Container ID</th>
                   <th>Image</th>
@@ -24,6 +25,7 @@
               </thead>
               <tfoot>
                 <tr>
+                  <th></th>
                   <th>Container Name</th>
                   <th>Container ID</th>
                   <th>Image</th>
@@ -36,13 +38,20 @@
               <tbody>
                 {% for container in containers %}
                     <tr>
-                        <td>{{ ','.join(container['Names']) }}</td>
+                        <td><input type="checkbox" class="form-group" id="IsSelected" name="IsSelected"></td>
+                        <td>{{ container['ContainerName'] }}</td>
                         <td>{{ container['Id'][:12] }}</td>
                         <td>{{ container['Image'] }}</td>
-                        <td>{{ container['owener'] }}</td>
-                        <td>{{ ','.join(container['Mounts']) }}</td>
-                        <td>{{ ';'.join(','.join(container['Ports'].key)) }}</td>
-                        <td>{{ container['State'] }}</td>
+                        <td>{{ container['Owner'] }}</td>
+                        <td>{{ container['Volumes'] }}</td>
+                        <td>{{ container['PortsMapping'] }}</td>
+                        {% if container['State'] == 'running' %}
+                            <td><img src={{ url_for('static', filename='images/loading.gif') }}>&nbsp;Running</td>
+                        {% elif container['State'] == 'exited' %}
+                            <td><img src={{ url_for('static', filename='images/offline.png') }}>&nbsp;&nbsp;&nbsp;Exited</td>
+                        {% else %}
+                            <td>{{ container['State'] }}</td>
+                        {% endif %}
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -52,16 +61,63 @@
         <div class="card-footer small text-muted">Updated at {{ update_timestamp }}</div>
       </div>
     <div class="form-group">
-    <a class="btn btn-primary" href={{ url_for('update_list') }} id="updateList" type="button">Update List</a>
-    <a class="btn btn-primary" href={{ url_for('images') }} id="imageDetails" type="button">Details</a>
-    <a class="btn btn-primary" href={{ url_for('images') }} id="imageRemove" type="button">Remove</a>
-    <a class="btn btn-primary" href={{ url_for('images') }} id="imageImport" type="button">Import...</a>
-    <a class="btn btn-primary" href={{ url_for('images') }} id="imagePull" type="button">Pull...</a>
-    <a class="btn btn-primary" href={{ url_for('images') }} id="imageCustBuild" type="button">Customize Build</a>
-
-
-        </div>
+    <a class="btn btn-primary" href="#" id="containerStart" type="button">Start</a>
+    <a class="btn btn-primary" href="#" id="containerStop" type="button">Stop</a>
+    <a class="btn btn-primary" href="#" id="containerRemove" type="button">Remove</a>
+    <a class="btn btn-primary" href="#" id="containerDetail" type="button">Info</a>
+    <a class="btn btn-primary" href="#" id="containerSave" type="button">Save as Image</a>
+    </div>
       <!-- content end from here -->
       <!-- Blank div to give the page height to preview the fixed vs. static navbar-->
 {#      <div style="height: 1000px;"></div>#}
+{% endblock %}
+
+{% block customized_scripts %}
+    <!-- Bootstrap core JavaScript-->
+    <script src="../static/vendor/jquery/jquery.min.js"></script>
+    <script src="../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- Core plugin JavaScript-->
+    <script src="../static/vendor/jquery-easing/jquery.easing.min.js"></script>
+    <!-- Custom scripts for all pages-->
+    <script src="../static/js/sb-admin.min.js"></script>
+    <!-- Custom scripts for this page-->
+    <!-- Toggle between fixed and static navbar-->
+    <script src="../static/vendor/datatables/jquery.dataTables.js"></script>
+    <script src="../static/vendor/datatables/dataTables.bootstrap4.js"></script>
+    <script src="../static/js/sb-admin.js"></script>
+    <script src="../static/js/sb-admin-datatables.min.js"></script>
+    <script scr="../static/vendor/bootstrap/js/bootstrap.js"></script>
+    <script>
+    $('#toggleNavPosition').click(function() {
+      $('body').toggleClass('fixed-nav');
+      $('nav').toggleClass('fixed-top static-top');
+    });
+
+    </script>
+    <!-- Toggle between dark and light navbar-->
+    <script>
+    $('#toggleNavColor').click(function() {
+      $('nav').toggleClass('navbar-dark navbar-light');
+      $('nav').toggleClass('bg-dark bg-light');
+      $('body').toggleClass('bg-dark bg-light');
+    });
+
+    </script>
+
+    <!-- allow one check box to be selected -->
+    <script>
+    var table = $("#dataTable")
+    $(document).ready(function(){
+        $('input[type="checkbox"]').on('change', function() {
+           var checkvalue = $(this).prop('checked');
+           table.find('input[type="checkbox"]').each(function(){
+                $(this).prop('checked', false);
+           });
+           $(this).prop("checked", checkvalue)
+        });
+    });
+    </script>
+
+
+
 {% endblock %}
