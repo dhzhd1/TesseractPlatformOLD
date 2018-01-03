@@ -55,8 +55,41 @@ def stop_container(client, container_id):
 	except docker.errors.APIError as ae:
 		return ae.message
 
-def get_port_of_container(clinet, container_id):
+def get_port_of_container(client, container_id):
 	pass
+
+
+
+def get_image_info(client, image_id):
+	"""
+		:type client: docker.APIClient
+		:type image_id: str
+	"""
+	try:
+		result = client.inspect_image(image_id)
+	except docker.errors.APIError as ae:
+		result = {'error': ae.message}
+	finally:
+		return result
+
+
+def remove_image(client, image_id):
+	"""
+	:type client, docker.APIClient
+	:type image_id, str
+	:param client:
+	:param image_id:
+	:return:
+	"""
+	try:
+		client.remove_image(image_id)
+		result = {'status': True}
+	except docker.errors.APIError as ae:
+		result = {'status': False, 'error': ae.message}
+	finally:
+		return result
+
+
 
 if __name__ == "__main__":
 	# client = docker.from_env()

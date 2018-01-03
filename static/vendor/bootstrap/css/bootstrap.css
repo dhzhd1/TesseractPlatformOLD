@@ -5147,10 +5147,24 @@ button.close {
   }
 }
 
+.modal-large {
+    width: 80%;
+    margin-left: -40%;
+}
+
 @media (min-width: 992px) {
   .modal-lg {
-    max-width: 800px;
+    max-width: 1000px;
   }
+  .modal-xlg {
+      max-width: 1200px;
+  }
+}
+
+@media (min-width: 1120px) {
+    .modal-xlg {
+        max-width: 1100px;
+    }
 }
 
 .tooltip {

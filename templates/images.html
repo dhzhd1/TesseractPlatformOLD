@@ -1,6 +1,7 @@
 {% extends 'layout.html' %}
 {% block main_container %}
       <!-- Breadcrumbs-->
+     {{ message|safe }}
       <ol class="breadcrumb">
         <li class="breadcrumb-item">
           <a href={{ url_for('dashboard') }}>Dashboard</a>
@@ -9,7 +10,7 @@
       </ol>
       <hr>
       <div class="card mb-3">
-        <div class="card-header"><i class="fa fa-table"></i> AI Images List </div>
+        <div class="card-header"><i class="fa fa-database"></i> AI Images List </div>
         <div class="card-body">
           <div class="table-responsive">
             <table class="table table-bordered table-hover" id="dataTable" width="100%" cellspacing="0">
@@ -36,7 +37,7 @@
               <tbody>
                 {% for image in images %}
                     <tr>
-                        <td><input type="checkbox" class="form-group" id="IsSelected" name="IsSelected" value={{ image.image_id.split(':')[1][:12] }}></td>
+                        <td><input type="checkbox" class="form-group" id="imageGroup" name="imageGroup" value={{ image.image_id.split(':')[1][:12] }}></td>
                         <td>{{ image.repository }}</td>
                         <td>{{ image.image_tag }}</td>
                         <td>{{ image.image_id.split(':')[1][0:12] }}</td>
@@ -53,29 +54,60 @@
         <div class="form-group">
         <a class="btn btn-primary" href={{ url_for('update_list') }} id="updateList" type="button">Update List</a>
         <a class="btn btn-primary" data-toggle="modal" data-target="#imageDetail" href="#" id="detailBt">Details</a>
-        <a class="btn btn-primary" href="#" id="imageRemove" type="button" id="imageRemoveLink">Remove</a>
-        <a class="btn btn-primary" href="#" id="imageImport" type="button" id="imageImportLink">Import...</a>
-        <a class="btn btn-primary" href="#" id="imageImport" type="button" id="imageExportLink">Export...</a>
-        <a class="btn btn-primary" href="#" id="imagePull" type="button" id="imagePullLink">Pull...</a>
+        <a class="btn btn-primary" data-toggle="modal" data-target="#removeImage" href="#" id="imageRemoveBt">Remove</a>
+        <a class="btn btn-primary" href="#" id="imageImport" type="button" id="imageImportBt">Import...</a>
+        <a class="btn btn-primary" href="#" id="imageImport" type="button" id="imageExportBt">Export...</a>
+        <a class="btn btn-primary" href="#" id="imagePull" type="button" id="imagePullBt">Pull...</a>
         <a class="btn btn-primary" href="#" id="imageBuild" type="button">Build from Dockerfile</a>
         </div>
 
-      <div class="modal fade" id="imageDetail" tabindex="-1" role="main" aria-labelledby="imageDetailInfo" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
+
+    <!-- image detail  -->
+      <div class="modal fade " id="imageDetail" tabindex="-1" role="main" aria-labelledby="imageDetailInfo" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content modal-lg">
           <div class="modal-header">
-            <h5 class="modal-title" id="imageDetailInfo">Image Information</h5>
+            <h5 class="modal-title " id="imageDetailInfo">Image Information</h5>
             <button class="close" type="button" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">×</span>
             </button>
           </div>
-          <div class="modal-body" id="infoBody">Please selected an Image first!</div>
-          <div class="modal-footer">
+          <div class="modal-body" id="imgInfoBody">Please selected an Image first!</div>
+          <div class="modal-footer ">
             <button class="btn btn-secondary" type="button" data-dismiss="modal">OK</button>
           </div>
         </div>
       </div>
       </div>
+
+    <!-- remove image -->
+      <div class="modal fade " id="removeImage" tabindex="-1" role="main" aria-labelledby="removeImage" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title " id="removeImage">Remove Image</h5>
+            <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body" id="imgRemoveBody">Please select an Image first!</div>
+          <div class="modal-footer ">
+            <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+            <a class="btn btn-primary" id="removeBt" href='#'>Remove</a>
+          </div>
+        </div>
+      </div>
+      </div>
+
+    <!-- import image -->
+
+
+    <!-- Export Image -->
+
+    <!-- Pull Image -->
+
+    <!-- Dockerfile Customerize build -->
+
       <!-- content end from here -->
       <!-- Blank div to give the page height to preview the fixed vs. static navbar-->
 {#      <div style="height: 1000px;"></div>#}
@@ -115,7 +147,7 @@
 
     <!-- allow one check box to be selected -->
     <script>
-    var table = $("#dataTable")
+    var table = $("#dataTable");
     $(document).ready(function(){
         $('input[type="checkbox"]').on('change', function() {
            var checkvalue = $(this).prop('checked');
@@ -130,14 +162,33 @@
 
     <!-- replace the #infoBody -->
     <script>
-        detailBt = $('#detailBt')
-        div_body = $('#infoBody')
+        var detailBt = $('#detailBt');
+        var div_body = $('#imgInfoBody');
+        var image_id;
         detailBt.click(function(){
-            $.getJSON('/image/image-detail',
+            $('input[name="imageGroup"]:checked').each(function () {
+                image_id = this.value;
+            });
+            $.getJSON('/image/image-detail/' + image_id,
             function (data) {
                 div_body.html(data);
             }
         );
+        });
+    </script>
+
+
+    <!-- remove image -->
+    <script>
+        var image_id;
+        var imgRemoveBt = $('#imageRemoveBt')
+        var modal_body_remove = $('#imgRemoveBody')
+        imgRemoveBt.click(function () {
+           $('input[name="imageGroup"]:checked').each(function () {
+             image_id = this.value;
+           });
+           modal_body_remove.html("<p><b>Do you want to remove the image '"+ image_id + "' </b><br></p>")
+           $('#removeBt').attr('href', '/image/remove/' + image_id )
         });
     </script>
 

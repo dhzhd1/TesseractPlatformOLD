@@ -1,0 +1,73 @@
+<p>Image Detail Information for {{ image_info['Id'].split(':')[1][:12] }}</p>
+<div class="table-responsive-md">
+<table class="table table-bordered table-hover">
+    <tbody>
+            <tr>
+                <td>Image ID</td>
+                <td>{{ image_info['Id'] }}</td>
+            </tr>
+            <tr>
+                <td>Created at</td>
+                <td>{{ image_info['Created'] }}</td>
+            </tr>
+            <tr>
+                <td>Base Container ID</td>
+                <td>{{ image_info['Container'] }}</td>
+            </tr>
+            <tr>
+                <td>Repository Tag</td>
+                <td>{{ image_info['RepoTags'][0] }}</td>
+            </tr>
+            <tr>
+                <td>Docker Version</td>
+                <td>{{ image_info['DockerVersion'] }}</td>
+            </tr>
+            <tr>
+                <td>Size</td>
+                <td>{{ image_info['Size'] }}</td>
+            </tr>
+            <tr>
+                <td>OS</td>
+                <td>{{ image_info['Os'] }}</td>
+            </tr>
+            <tr>
+                <td>Architecture</td>
+                <td>{{ image_info['Architecture'] }}</td>
+            </tr>
+            <tr>
+                <td>RootFS</td>
+                <td>{{ image_info['RootFS'] }}</td>
+            </tr>
+            <tr>
+                <td>Comment</td>
+                <td>{{ image_info['Comment'] }}</td>
+            </tr>
+            <tr>
+                <td>Image Config</td>
+                <td>
+                    <table>
+                        {%  for key in image_info['Config'].keys() %}
+                            <tr>
+                                <td>{{ key }}</td>
+                                <td>{{ image_info['Config'][key] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>Base Container Config</td>
+                <td>
+                    <table>
+                        {% for key in image_info['ContainerConfig'] %}
+                            <tr>
+                                <td>{{ key }}</td>
+                                <td>{{ image_info['ContainerConfig'][key] }}</td>
+                            </tr>
+                        {% endfor %}
+                    </table>
+                </td>
+            </tr>
+    </tbody>
+</table>
+</div>

@@ -12,7 +12,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from datetime import datetime
 import subprocess, docker
 from docker import APIClient
-from container import create_container, start_container
+from container import create_container, start_container, get_image_info, remove_image
 
 # app settings
 app = Flask(__name__)
@@ -257,11 +257,15 @@ def dashboard():
 
 @app.route('/images', methods=['GET', 'POST'])
 @login_required
-def images():
-	images = Image.query.all()
+def images(msg=None):
+	if msg is not None:
+		html_content = "<div></div>"
+	else:
+		html_content = "<div></div>"
+	image_list = Image.query.all()
 	return render_template('images.html', title="Images - Tesseract Platform",
-						   images=images,
-						   update_timestamp=str(datetime.now()))
+						   images=image_list,
+						   update_timestamp=str(datetime.now()), message=html_content)
 
 
 @app.route('/new-instance', methods=['GET', 'POST'])
@@ -433,11 +437,26 @@ def update_list():
 	return redirect(url_for('images'))
 
 
-@app.route('/image/image-detail', methods=['GET'])
+@app.route('/image/image-detail/<string:image_id>', methods=['GET'])
 @login_required
-def image_detail():
-	return_str = ["<h1>Image Detail</h1>"]
+def image_detail(image_id):
+	image_info = get_image_info(docker_client, image_id)
+	if "error" in image_info.keys():
+		return_str = [image_id["error"]]
+	else:
+		return_str = [render_template('image_detail_table.html', image_info=image_info)]
 	return jsonify(return_str)
+
+
+@app.route('/image/remove/<string:image_id>', methods=['GET', 'POST'])
+@login_required
+def remove_image(image_id):
+	result = remove_image(image_id)
+	if not result["status"]:
+		return_str = [result["error"]]
+	else:
+		return_str = ["Image " + image_id + "has been removed!"]
+	return redirect(url_for('images'))
 
 
 @app.route('/logs', methods=['GET'])
