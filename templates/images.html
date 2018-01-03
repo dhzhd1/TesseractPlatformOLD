@@ -1,7 +1,6 @@
 {% extends 'layout.html' %}
 {% block main_container %}
       <!-- Breadcrumbs-->
-     {{ message|safe }}
       <ol class="breadcrumb">
         <li class="breadcrumb-item">
           <a href={{ url_for('dashboard') }}>Dashboard</a>
@@ -9,6 +8,7 @@
         <li class="breadcrumb-item active">List of Images</li>
       </ol>
       <hr>
+        {{ message|safe }}
       <div class="card mb-3">
         <div class="card-header"><i class="fa fa-database"></i> AI Images List </div>
         <div class="card-body">

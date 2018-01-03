@@ -73,7 +73,7 @@ def get_image_info(client, image_id):
 		return result
 
 
-def remove_image(client, image_id):
+def delete_image(client, image_id):
 	"""
 	:type client, docker.APIClient
 	:type image_id, str

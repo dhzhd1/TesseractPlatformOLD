@@ -12,7 +12,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from datetime import datetime
 import subprocess, docker
 from docker import APIClient
-from container import create_container, start_container, get_image_info, remove_image
+from container import create_container, start_container, get_image_info, delete_image
 
 # app settings
 app = Flask(__name__)
@@ -453,9 +453,9 @@ def image_detail(image_id):
 
 @app.route('/image/remove/<string:image_id>', methods=['GET'])
 @login_required
-def remove_image(image_id):
-	result = remove_image(image_id)
-	return redirect(url_for(image_view, msg=result))
+def delete_image_by_id(image_id):
+	result = delete_image(docker_client, image_id)
+	return redirect(url_for('all_images', msg=result))
 
 
 @app.route('/logs', methods=['GET'])
