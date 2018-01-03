@@ -257,15 +257,18 @@ def dashboard():
 
 @app.route('/images', methods=['GET', 'POST'])
 @login_required
-def images(msg=None):
-	if msg is not None:
-		html_content = "<div></div>"
-	else:
-		html_content = "<div></div>"
+def all_images(msg=None):
 	image_list = Image.query.all()
+	if msg is not None:
+		if msg['status']:
+			html_content = '<div class="alert-success alert-dismissable"><span>Image has been removed!</span></div>'
+		else:
+			html_content = '<div class="alert-warning alert-dismissable"><span>Failed remove image. [Error]: ' + msg['error'] + '</span></div>'
+	else:
+		html_content = ''
 	return render_template('images.html', title="Images - Tesseract Platform",
-						   images=image_list,
-						   update_timestamp=str(datetime.now()), message=html_content)
+					        images=image_list,
+					        update_timestamp=str(datetime.now()), message=html_content)
 
 
 @app.route('/new-instance', methods=['GET', 'POST'])
@@ -448,15 +451,11 @@ def image_detail(image_id):
 	return jsonify(return_str)
 
 
-@app.route('/image/remove/<string:image_id>', methods=['GET', 'POST'])
+@app.route('/image/remove/<string:image_id>', methods=['GET'])
 @login_required
 def remove_image(image_id):
 	result = remove_image(image_id)
-	if not result["status"]:
-		return_str = [result["error"]]
-	else:
-		return_str = ["Image " + image_id + "has been removed!"]
-	return redirect(url_for('images'))
+	return redirect(url_for(image_view, msg=result))
 
 
 @app.route('/logs', methods=['GET'])
