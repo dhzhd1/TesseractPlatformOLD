@@ -119,7 +119,8 @@ class Instance(db.Model):
 	#       ports, publish_all_ports, restart_policy, stop_signal, tty, ulimits, volumnes, runtime, working_dir
 
 	def __init__(self, image_id=None, instance_name=None, instance_owner=None, with_gpu=None,
-				 gpu_ids=None, share_folder=None, env_params=None, startup_params=None):
+				 gpu_ids=None, share_folder=None, env_params=None, container_id=None, created_time=None,
+				 status=None, port_map=None, memo=None):
 		self.image_id = image_id
 		self.instance_name = instance_name
 		self.instance_owner = instance_owner
@@ -127,7 +128,11 @@ class Instance(db.Model):
 		self.gpu_ids = gpu_ids
 		self.share_folder = share_folder
 		self.env_params = env_params
-		self.startup_params = startup_params
+		self.container_id = container_id
+		self.created_time = created_time
+		self.status = status
+		self.port_map = port_map
+		self.memo = memo
 
 
 class GpuDeviceInfo(db.Model):
@@ -169,14 +174,16 @@ def load_user(user_id):
 
 class Logs(db.Model):
 	timestamp = db.Column(db.DateTime, primary_key=True, default=datetime.now())
-	log_type = db.Column(db.String(10), nullable=False)
+	log_level = db.Column(db.String(10), nullable=False)
+	log_user = db.Column(db.String(64), nullable=True, default='System')
 	log_message = db.Column(db.String(1024))
 	log_detail = db.Column(db.Text)
 
-	def __init__(self, log_type=None, log_message=None, log_detail=None):
-		self.log_type = log_type
+	def __init__(self, log_level=None, log_message=None, log_detail=None, log_user=None):
+		self.log_level = log_level
 		self.log_message = log_message
 		self.log_detail = log_detail
+		self.log_user = log_user
 
 
 # Some constant
@@ -272,8 +279,8 @@ def all_images():
 			html_content = '<div class="alert alert-warning alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Failed remove image. [Error]: ' + request.form['removeImageErrMsg'] + '</strong></div>'
 
 	return render_template('images.html', title="Images - Tesseract Platform",
-					        images=image_list,
-					        update_timestamp=str(datetime.now()), message=html_content)
+							images=image_list,
+							update_timestamp=str(datetime.now()), message=html_content)
 
 
 @app.route('/new-instance', methods=['GET', 'POST'])
@@ -290,8 +297,8 @@ def new_instance():
 		inst.env_params = form.param_list.data
 		# inst.startup_params = form.other_startup_params.data
 		inst.gpu_ids = ','.join(form.select_gpu.data
-		                        if 'all' not in form.select_gpu.data
-		                        else [str(x) for x in xrange(GpuDeviceInfo.query.count())]) if not form.need_gpu.data else ''
+								if 'all' not in form.select_gpu.data
+								else [str(x) for x in xrange(GpuDeviceInfo.query.count())]) if not form.need_gpu.data else ''
 		inst.port_map = form.port_list.data
 		need_start = form.start_immediate.data
 		try:
@@ -316,7 +323,7 @@ def new_instance():
 					message = "Instance cannot started!"
 				finally:
 					return render_template('new_instance.html', form=NewInstanceForm(), title="New Instance - Tesseract Platform",
-					                       result=result, message=message)
+										   result=result, message=message)
 			except Exception as e:
 				db.session.rollback()
 				result = "failed"
@@ -329,7 +336,7 @@ def new_instance():
 			message = "Failed create instance!"
 		finally:
 			return render_template('new_instance.html', form=NewInstanceForm(), title="New Instance - Tesseract Platform",
-			                       result=result, message=message)
+								   result=result, message=message)
 	return render_template('new_instance.html', form=form, title="New Instance - Tesseract Platform", result="")
 
 
@@ -380,18 +387,18 @@ def instance_mgmt():
 				message_html = '<div class="alert alert-success alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Container started!</strong></div>'
 			else:
 				message_html = '<div class="alert alert-warning alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Failed to start container. [Error]: ' + \
-				               request.form['startContainerErrMsg'] + '</strong></div>'
+							   request.form['startContainerErrMsg'] + '</strong></div>'
 		if 'stopContainerStatus' in request.form.keys() and 'stopContainerErrMsg' in request.form.keys():
 			if int(request.form['stopContainerStatus']):
 				message_html = '<div class="alert alert-success alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Container stopped!</strong></div>'
 			else:
 				message_html = '<div class="alert alert-warning alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Failed to stop container. [Error]: ' + \
-				               request.form['stopContainerErrMsg'] + '</strong></div>'
+							   request.form['stopContainerErrMsg'] + '</strong></div>'
 
 	return render_template('instance_mgmt.html', title="Instance Management - Tesseract Platform",
-	                       containers=container_list,
-	                       update_timestamp=str(datetime.now()),
-	                       message=message_html)
+						   containers=container_list,
+						   update_timestamp=str(datetime.now()),
+						   message=message_html)
 
 
 @app.route('/gpu-info', methods=['GET', 'POST'])
@@ -462,7 +469,7 @@ def update_list():
 			print e.message
 			db.session.rollback()
 
-	return redirect(url_for('images'))
+	return redirect(url_for('all_images'))
 
 
 @app.route('/image/image-detail/<string:image_id>', methods=['GET'])
@@ -502,8 +509,9 @@ def start_instance(container_id):
 def logs():
 	return render_template('logs.html')
 
+
 if __name__ == '__main__':
-	db.session.add(Logs(log_message='Application started', log_type='Info', log_detail='N/A'))
+	db.session.add(Logs(log_message='Application started', log_level='Info', log_detail='N/A', log_user='System'))
 	db.session.commit()
 	app.run(debug=True)
 

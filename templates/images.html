@@ -200,8 +200,18 @@
         remove_ok_bt.click(function () {
            $.getJSON('/images/remove/' + image_id,
            function (data) {
+               alert(data);
                var status = JSON.parse(data).status;
-               var errmsg = JSON.parse(JSON.parse(data).error).message;
+               try{
+                   var errmsg;
+                   errmsg = JSON.parse(JSON.parse(data).error).message;
+                   alert(errmsg + '1');
+               }
+               catch(e){
+                   errmsg = '';
+                   alert(errmsg + '2');
+               }
+
                $('#removeImageStatus').val(status);
                $('#removeImageErrMsg').val(errmsg);
                $('#removeImageForm').submit();

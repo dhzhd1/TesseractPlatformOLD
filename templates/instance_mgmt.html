@@ -149,14 +149,20 @@
        $.getJSON('/instance/stop/' + container_id,
            function (data) {
                var status = JSON.parse(data).status;
-               var errmsg = JSON.parse(JSON.parse(data).error).message;
+               try{
+                   var errmsg;
+                   errmsg = JSON.parse(JSON.parse(data).error).message;
+               }
+               catch(e){
+                   errmsg = '';
+               }
                $('#stopContainerStatus').val(status);
                $('#stopContainerErrMsg').val(errmsg);
                $('#stopContainerForm').submit();
        });
     });
 
-    $('#containerStart').click(function () {
+    $("#containerStart").click(function () {
        var container_id;
        $('input[name="containerGroup"]:checked').each(function () {
           container_id = this.value;
@@ -164,7 +170,13 @@
        $.getJSON('/instance/start/' + container_id,
            function (data) {
               var status = JSON.parse(data).status;
-              var errmsg = JSON.parse(JSON.parse(data).error).message;
+              try{
+                  var errmsg;
+                  errmsg = JSON.parse(JSON.parse(data).error).message;
+              }
+               catch(e){
+                  errmsg = '';
+               }
               $('#startContainerStatus').val(status);
               $('#startContainerErrMsg').val(errmsg);
               $('#startContainerForm').submit();

@@ -12,8 +12,10 @@ def create_container(client, instance):
 	environment = [ e for e in environment if e != '']
 	volumns = {}
 	runtime = ''
-	for p in instance.share_folder.split(','):
-		volumns[p.split(':')[0]] = {'bind': p.split(':')[1], 'mode': VOL_RIGHTS}
+	folder_mapping = [f for f in instance.share_folder.split(',') if f != '']
+	if len(folder_mapping) > 0:
+		for p in instance.share_folder.split(','):
+			volumns[p.split(':')[0]] = {'bind': p.split(':')[1], 'mode': VOL_RIGHTS}
 	if instance.with_gpu and instance.gpu_ids != 0:
 		runtime = 'nvidia'
 		environment.append("NVIDIA_VISIBLE_DEVICES=" + instance.gpu_ids)
@@ -50,12 +52,6 @@ def remove_container(client, container_id):
 	except docker.errors.APIError as ae:
 		return ae.message
 
-def stop_container(client, container_id):
-	try:
-		client.stop(container=container_id)
-		return '0'
-	except docker.errors.APIError as ae:
-		return ae.message
 
 def get_port_of_container(client, container_id):
 	pass
