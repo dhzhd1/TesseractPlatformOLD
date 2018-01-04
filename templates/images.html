@@ -193,25 +193,15 @@
              image_id = this.value;
            });
            modal_body_remove.html("<p><b>Do you want to remove the image '"+ image_id + "' </b><br></p>");
-           remove_ok_bt.attr('href', '/images/remove/' + image_id );
+           // remove_ok_bt.attr('href', '/images/remove/' + image_id );
         });
 
         // remove button action in modal screen
         remove_ok_bt.click(function () {
            $.getJSON('/images/remove/' + image_id,
            function (data) {
-               alert(data);
                var status = JSON.parse(data).status;
-               try{
-                   var errmsg;
-                   errmsg = JSON.parse(JSON.parse(data).error).message;
-                   alert(errmsg + '1');
-               }
-               catch(e){
-                   errmsg = '';
-                   alert(errmsg + '2');
-               }
-
+               var errmsg = JSON.parse(JSON.parse(data).error).message;
                $('#removeImageStatus').val(status);
                $('#removeImageErrMsg').val(errmsg);
                $('#removeImageForm').submit();
