@@ -6,6 +6,7 @@
     <li class="breadcrumb-item active">Instance Management</li>
 </ol>
 <hr>
+{{ message|safe }}
 <div class="card mb-3">
         <div class="card-header"><i class="fa fa-cubes"></i> All Instance List </div>
         <div class="card-body">
@@ -38,7 +39,7 @@
               <tbody>
                 {% for container in containers %}
                     <tr>
-                        <td><input type="checkbox" class="form-group" id="IsSelected" name="IsSelected"></td>
+                        <td><input type="checkbox" class="form-group" id="containerGroup" name="containerGroup" value={{ container['Id'][:12] }}></td>
                         <td>{{ container['ContainerName'] }}</td>
                         <td>{{ container['Id'][:12] }}</td>
                         <td>{{ container['Image'] }}</td>
@@ -65,8 +66,26 @@
     <a class="btn btn-primary" href="#" id="containerStop" type="button">Stop</a>
     <a class="btn btn-primary" href="#" id="containerRemove" type="button">Remove</a>
     <a class="btn btn-primary" href="#" id="containerDetail" type="button">Info</a>
-    <a class="btn btn-primary" href="#" id="containerSave" type="button">Save as Image</a>
+    <a class="btn btn-primary" href="#" id="containerConvert" type="button">Convert to Image</a>
+    <a class="btn btn-primary" href="#" id="containerCopy" type="button">Copy to New</a>
     </div>
+
+    <form name="startContainerForm" id="startContainerForm" method="POST" action={{ url_for('instance_mgmt') }} >
+        <input type="hidden" id="startContainerStatus" name="startContainerStatus" value="">
+        <input type="hidden" id="startContainerErrMsg" name="startContainerErrMsg" value="">
+    </form>
+
+    <form name="stopContainerForm" id="stopContainerForm" method="POST" action={{ url_for('instance_mgmt') }} >
+        <input type="hidden" id="stopContainerStatus" name="stopContainerStatus" value="">
+        <input type="hidden" id="stopContainerErrMsg" name="stopContainerErrMsg" value="">
+    </form>
+
+    <!-- modal dialog for remove container -->
+
+
+    <!-- modal dialog for container info -->
+
+
       <!-- content end from here -->
       <!-- Blank div to give the page height to preview the fixed vs. static navbar-->
 {#      <div style="height: 1000px;"></div>#}
@@ -106,18 +125,52 @@
 
     <!-- allow one check box to be selected -->
     <script>
-    var table = $("#dataTable")
+    var table = $("#dataTable");
     $(document).ready(function(){
         $('input[type="checkbox"]').on('change', function() {
            var checkvalue = $(this).prop('checked');
            table.find('input[type="checkbox"]').each(function(){
                 $(this).prop('checked', false);
            });
-           $(this).prop("checked", checkvalue)
+           $(this).prop("checked", checkvalue);
         });
     });
     </script>
 
+
+    <script>
+
+
+    $('#containerStop').click(function () {
+       var container_id;
+       $('input[name="containerGroup"]:checked').each(function () {
+          container_id = this.value;
+       });
+       $.getJSON('/instance/stop/' + container_id,
+           function (data) {
+               var status = JSON.parse(data).status;
+               var errmsg = JSON.parse(JSON.parse(data).error).message;
+               $('#stopContainerStatus').val(status);
+               $('#stopContainerErrMsg').val(errmsg);
+               $('#stopContainerForm').submit();
+       });
+    });
+
+    $('#containerStart').click(function () {
+       var container_id;
+       $('input[name="containerGroup"]:checked').each(function () {
+          container_id = this.value;
+       });
+       $.getJSON('/instance/start/' + container_id,
+           function (data) {
+              var status = JSON.parse(data).status;
+              var errmsg = JSON.parse(JSON.parse(data).error).message;
+              $('#startContainerStatus').val(status);
+              $('#startContainerErrMsg').val(errmsg);
+              $('#startContainerForm').submit();
+       });
+    });
+    </script>
 
 
 {% endblock %}

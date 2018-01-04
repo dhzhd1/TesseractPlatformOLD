@@ -1,7 +1,11 @@
 # coding:utf-8
 
 # Library Import
-from flask import Flask, render_template, url_for, redirect, jsonify, flash
+import ast
+import json
+
+from flask import Flask, render_template, url_for, redirect, jsonify, flash, request
+import requests
 from flask_bootstrap3 import Bootstrap
 from flask_wtf import FlaskForm
 from wtforms import StringField, BooleanField, PasswordField, SelectField, SelectMultipleField
@@ -12,7 +16,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from datetime import datetime
 import subprocess, docker
 from docker import APIClient
-from container import create_container, start_container, get_image_info, delete_image
+from container import create_container, start_container, get_image_info, delete_image, stop_container
 
 # app settings
 app = Flask(__name__)
@@ -257,15 +261,16 @@ def dashboard():
 
 @app.route('/images', methods=['GET', 'POST'])
 @login_required
-def all_images(msg=None):
+def all_images():
+	html_content = ''
 	image_list = Image.query.all()
-	if msg is not None:
-		if msg['status']:
-			html_content = '<div class="alert-success alert-dismissable"><span>Image has been removed!</span></div>'
+	if 'removeImageStatus' in request.form.keys() and 'removeImageErrMsg' in request.form.keys():
+		remove_image_status = int(request.form['removeImageStatus'])
+		if remove_image_status:
+			html_content = '<div class="alert alert-success alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Image has been removed!</strong></div>'
 		else:
-			html_content = '<div class="alert-warning alert-dismissable"><span>Failed remove image. [Error]: ' + msg['error'] + '</span></div>'
-	else:
-		html_content = ''
+			html_content = '<div class="alert alert-warning alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Failed remove image. [Error]: ' + request.form['removeImageErrMsg'] + '</strong></div>'
+
 	return render_template('images.html', title="Images - Tesseract Platform",
 					        images=image_list,
 					        update_timestamp=str(datetime.now()), message=html_content)
@@ -361,13 +366,33 @@ def get_expose_port(image_id):
 @login_required
 def instance_mgmt():
 	container_list = docker_client.containers(all=True)
+	message_html = ''
 	for container in container_list:
 		info_from_db = Instance.query.with_entities(Instance.instance_owner, Instance.share_folder, Instance.port_map, Instance.instance_name).filter_by(container_id=container['Id']).first()
 		container['Owner'] = None if info_from_db is None or info_from_db[0] == '' else info_from_db[0]
 		container['Volumes'] = None if info_from_db is None or info_from_db[1] == '' else info_from_db[1]
 		container['PortsMapping'] = None if info_from_db is None or info_from_db[2] == '' else info_from_db[2]
 		container['ContainerName'] = ','.join([ n[1:] for n in container['Names']])
-	return render_template('instance_mgmt.html', title="Instance Management - Tesseract Platform", containers=container_list)
+
+	if request.method == 'post':
+		if 'startContainerStatus' in request.form.keys() and 'startContainerErrMsg' in request.form.keys():
+			if int(request.form['startContainerStatus']):
+				message_html = '<div class="alert alert-success alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Container started!</strong></div>'
+			else:
+				message_html = '<div class="alert alert-warning alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Failed to start container. [Error]: ' + \
+				               request.form['startContainerErrMsg'] + '</strong></div>'
+		if 'stopContainerStatus' in request.form.keys() and 'stopContainerErrMsg' in request.form.keys():
+			if int(request.form['stopContainerStatus']):
+				message_html = '<div class="alert alert-success alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Container stopped!</strong></div>'
+			else:
+				message_html = '<div class="alert alert-warning alert-dismissable" role="alert"><span type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></span><strong>Failed to stop container. [Error]: ' + \
+				               request.form['stopContainerErrMsg'] + '</strong></div>'
+
+	return render_template('instance_mgmt.html', title="Instance Management - Tesseract Platform",
+	                       containers=container_list,
+	                       update_timestamp=str(datetime.now()),
+	                       message=message_html)
+
 
 @app.route('/gpu-info', methods=['GET', 'POST'])
 def gpu_info():
@@ -451,11 +476,25 @@ def image_detail(image_id):
 	return jsonify(return_str)
 
 
-@app.route('/image/remove/<string:image_id>', methods=['GET'])
+@app.route('/images/remove/<string:image_id>', methods=['GET'])
 @login_required
 def delete_image_by_id(image_id):
 	result = delete_image(docker_client, image_id)
-	return redirect(url_for('all_images', msg=result))
+	return jsonify(json.dumps(result))
+
+
+@app.route('/instance/stop/<string:container_id>', methods=['GET'])
+@login_required
+def stop_instance(container_id):
+	result = stop_container(docker_client, container_id)
+	return jsonify(json.dumps(result))
+
+
+@app.route('/instance/start/<string:container_id>', methods=['GET'])
+@login_required
+def start_instance(container_id):
+	result = start_container(docker_client, container_id)
+	return jsonify(json.dumps(result))
 
 
 @app.route('/logs', methods=['GET'])

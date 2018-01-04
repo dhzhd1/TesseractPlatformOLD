@@ -34,10 +34,12 @@ def create_container(client, instance):
 def start_container(client, container_id):
 	## Parameter option are not support
 	try:
-		response = client.start(container=container_id)
-		return response
+		client.start(container_id)
+		result = {'status': 1, 'error': ''}
 	except docker.errors.APIError as ae:
-		return ae.message
+		result = {'status': 0, 'error': ae.message.response.content}
+	finally:
+		return result
 
 
 def remove_container(client, container_id):
@@ -83,12 +85,28 @@ def delete_image(client, image_id):
 	"""
 	try:
 		client.remove_image(image_id)
-		result = {'status': True}
+		result = {'status': 1, 'error': ''}
 	except docker.errors.APIError as ae:
-		result = {'status': False, 'error': ae.message}
+		result = {'status': 0, 'error': ae.message.response.content}
 	finally:
 		return result
 
+
+def stop_container(client, container_id):
+	"""
+	:type client, docker.APIClient
+	:type container_id, str
+	:param client:
+	:param container_id:
+	:return:
+	"""
+	try:
+		client.stop(container_id)
+		result = {'status': 1, 'error': ''}
+	except docker.errors.APIError as ae:
+		result = {'status': 0, 'error': ae.message.response.content}
+	finally:
+		return result
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@
       </ol>
       <hr>
         {{ message|safe }}
-      <div class="card mb-3">
+    <div class="card mb-3">
         <div class="card-header"><i class="fa fa-database"></i> AI Images List </div>
         <div class="card-body">
           <div class="table-responsive">
@@ -53,7 +53,7 @@
       </div>
         <div class="form-group">
         <a class="btn btn-primary" href={{ url_for('update_list') }} id="updateList" type="button">Update List</a>
-        <a class="btn btn-primary" data-toggle="modal" data-target="#imageDetail" href="#" id="detailBt">Details</a>
+        <a class="btn btn-primary" data-toggle="modal" data-target="#imageDetail" href="#" id="detailBt">Info</a>
         <a class="btn btn-primary" data-toggle="modal" data-target="#removeImage" href="#" id="imageRemoveBt">Remove</a>
         <a class="btn btn-primary" href="#" id="imageImport" type="button" id="imageImportBt">Import...</a>
         <a class="btn btn-primary" href="#" id="imageImport" type="button" id="imageExportBt">Export...</a>
@@ -90,10 +90,14 @@
               <span aria-hidden="true">×</span>
             </button>
           </div>
+          <form name="removeImageForm" id="removeImageForm" method="POST" action={{ url_for('all_images') }} >
+              <input type="hidden" value="" id="removeImageStatus"  name="removeImageStatus">
+              <input type="hidden" value="" id="removeImageErrMsg"  name="removeImageErrMsg">
+          </form>
           <div class="modal-body" id="imgRemoveBody">Please select an Image first!</div>
           <div class="modal-footer ">
             <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-            <a class="btn btn-primary" id="removeBt" href='#'>Remove</a>
+            <a class="btn btn-primary" id="removeBt" href="#">Remove</a>
           </div>
         </div>
       </div>
@@ -181,15 +185,29 @@
     <!-- remove image -->
     <script>
         var image_id;
-        var imgRemoveBt = $('#imageRemoveBt')
-        var modal_body_remove = $('#imgRemoveBody')
+        var imgRemoveBt = $('#imageRemoveBt');
+        var modal_body_remove = $('#imgRemoveBody');
+        var remove_ok_bt = $('#removeBt');
         imgRemoveBt.click(function () {
            $('input[name="imageGroup"]:checked').each(function () {
              image_id = this.value;
            });
-           modal_body_remove.html("<p><b>Do you want to remove the image '"+ image_id + "' </b><br></p>")
-           $('#removeBt').attr('href', '/image/remove/' + image_id )
+           modal_body_remove.html("<p><b>Do you want to remove the image '"+ image_id + "' </b><br></p>");
+           remove_ok_bt.attr('href', '/images/remove/' + image_id );
         });
+
+        // remove button action in modal screen
+        remove_ok_bt.click(function () {
+           $.getJSON('/images/remove/' + image_id,
+           function (data) {
+               var status = JSON.parse(data).status;
+               var errmsg = JSON.parse(JSON.parse(data).error).message;
+               $('#removeImageStatus').val(status);
+               $('#removeImageErrMsg').val(errmsg);
+               $('#removeImageForm').submit();
+           });
+        });
+
     </script>
 
 {% endblock customized_scripts %}
