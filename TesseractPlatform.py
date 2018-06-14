@@ -54,6 +54,7 @@ class User(UserMixin, db.Model):
 		self.email = email
 		self.group = group
 		self.activate_status = activate_status
+		# 'User' table inititialization should create a default 'admin' account with the password of 'P@ssw0rd'
 
 class Group(db.Model):
 	__tablename__ = 'group'
@@ -330,7 +331,7 @@ def new_instance():
 				message = "Failed create instance!"
 			finally:
 				return render_template('new_instance.html', form=NewInstanceForm(), title="New Instance - Tesseract Platform",
-								   result=result, message=message)
+								        result=result, message=message)
 		except Exception as e:
 			result = "failed"
 			message = "Failed create instance!"

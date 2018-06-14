@@ -33,7 +33,7 @@ def query_gpu_info(gpu_amount, nvidia_smi='/usr/bin/nvidia-smi'):
 	results = []
 	for i in xrange(gpu_amount):
 		raw_output = subprocess.check_output([nvidia_smi, '-q', '-i', str(i), '-x'])
-		result.append(raw_output)
+		results.append(raw_output)
 	return results
 
 def get_gpu_info(xml_content):

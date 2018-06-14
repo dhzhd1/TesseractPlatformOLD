@@ -15,3 +15,7 @@
 12. database initializating script: admin user, detail basic hw information, collect gpu information.
 13. (maybe) a fluxdb for collection gpu statistic and show in front.
 14. advanced options for user when created a new instance
+
+
+
+
